@@ -86,7 +86,6 @@ def get_parameters():
 
     Don't forget to change the name of the project
     '''
-    project_name = "project"
     parameters = OrderedDict()
     ### System generation parameters ###
     parameters["system_type"] = [
@@ -101,7 +100,7 @@ def get_parameters():
     parameters["monomer_sequence"] = [None]
     parameters["density"] = [0.8]
     parameters["n_compounds"] = [[10]]
-    parameters["polymer_lengths"] = [[50]]   
+    parameters["polymer_lengths"] = [[10]]   
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
@@ -155,7 +154,7 @@ def get_parameters():
 custom_job_doc = {} # added keys and values to be added to each job document created
 
 def main():
-    project = signac.init_project(project_name)
+    project = signac.init_project("project")
     param_names, param_combinations = get_parameters()
     # Create the generate jobs
     for params in param_combinations:

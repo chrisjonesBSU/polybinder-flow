@@ -154,7 +154,7 @@ def sample(job):
             shrink_steps = None
             shrink_period = None
 
-        system.system.save('init.gsd', overwrite=True)
+        system.system.save('init.mol2', overwrite=True)
         logging.info("System generated...")
         logging.info("Starting simulation...")
 
