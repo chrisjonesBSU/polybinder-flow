@@ -84,30 +84,33 @@ def sample(job):
     with job:
         logging.info("Creating system...")
         if job.sp["system_type"] != "interface":
-            system = system.System(
-                    molecule = job.sp['molecule'],
-                    para_weight = job.sp['para_weight'],
-                    monomer_sequence = job.sp['monomer_sequence'],
+            system_parms = system.System(
                     density = job.sp['density'],
+                    molecule = job.sp['molecule'],
                     n_compounds = job.sp['n_compounds'],
                     polymer_lengths = job.sp["polymer_lengths"],
-                    system_type = job.sp["system_type"],
-                    forcefield = job.sp['forcefield'],
+                    para_weight = job.sp['para_weight'],
+                    monomer_sequence = job.sp['monomer_sequence'],
                     sample_pdi = job.doc.sample_pdi,
                     pdi = job.sp['pdi'],
                     Mn = job.sp['Mn'],
                     Mw = job.sp['Mw'],
-                    mass_dist_type = job.sp['mass_dist'],
-                    remove_hydrogens = job.sp['remove_hydrogens'],
                     seed = job.sp['system_seed']
                 )
+            system = system.Initialize(
+                    system = system_parms,
+                    system_type = job.sp["system_type"],
+                    forcefield = job.sp["forcefield"],
+                    remove_hydrogens = job.sp["remove_hydrogens"],
+                    )
+
             shrink_kT = job.sp['shrink_kT'] 
             shrink_steps = job.sp['shrink_steps']
-            shrink_period = 500
-            job.doc['num_para'] = system.para
-            job.doc['num_meta'] = system.meta
-            job.doc['num_compounds'] = system.n_compounds
-            job.doc['polymer_lengths'] = system.polymer_lengths
+            shrink_period = job.sp['shrink_period']
+            job.doc['num_para'] = system_parms.para
+            job.doc['num_meta'] = system_parms.meta
+            job.doc['num_compounds'] = system_parms.n_compounds
+            job.doc['polymer_lengths'] = system_parms.polymer_lengths
 
         elif job.sp["system_type"] == "interface":
             slab_files = []
@@ -151,7 +154,7 @@ def sample(job):
             shrink_steps = None
             shrink_period = None
 
-        system.system.save('init.mol2', overwrite=True)
+        system.system.save('init.gsd', overwrite=True)
         logging.info("System generated...")
         logging.info("Starting simulation...")
 
@@ -176,17 +179,21 @@ def sample(job):
         job.doc['ref_energy'] = simulation.ref_energy
         job.doc['ref_distance'] = simulation.ref_distance
         job.doc['ref_mass'] = simulation.ref_mass
-        job.doc['real_timestep'] = unit_conversions.convert_to_real_time(simulation.dt,
-                                                    simulation.ref_energy,
-                                                    simulation.ref_distance,
-                                                    simulation.ref_mass)
+        job.doc['real_timestep'] = unit_conversions.convert_to_real_time(
+                                    simulation.dt,
+                                    simulation.ref_energy,
+                                    simulation.ref_distance,
+                                    simulation.ref_mass
+                            )
         job.doc['time_unit'] = 'fs'
         job.doc['steps_per_frame'] = simulation.gsd_write
         job.doc['steps_per_log'] = simulation.log_write
 
         if job.sp['procedure'] == "quench":
-            job.doc['T_SI'] = unit_conversions.kelvin_from_reduced(job.sp['kT_quench'],
-                                                    simulation.ref_energy)
+            job.doc['T_SI'] = unit_conversions.kelvin_from_reduced(
+                                    job.sp['kT_quench'],
+                                    simulation.ref_energy
+                            )
             job.doc['T_unit'] = 'K'
             logging.info("Beginning quench simulation...")
             simulation.quench(
