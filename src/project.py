@@ -201,7 +201,7 @@ def sample(job):
                     n_steps = job.sp['n_steps'],
                     shrink_kT = shrink_kT,
                     shrink_steps = shrink_steps,
-                    walls = job.sp['walls'],
+                    use_walls = job.sp['walls'],
                     shrink_period = shrink_period
                     )
 
@@ -225,7 +225,7 @@ def sample(job):
                     schedule = job.sp['schedule'],
                     shrink_kT = shrink_kT,
                     shrink_steps = shrink_steps,
-                    walls = job.sp['walls'],
+                    use_walls = job.sp['walls'],
                     shrink_period = shrink_period 
                     )
 
