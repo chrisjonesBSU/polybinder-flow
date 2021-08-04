@@ -89,8 +89,8 @@ def get_parameters():
     parameters = OrderedDict()
     ### System generation parameters ###
     parameters["system_type"] = [
-			"pack",
-            #"crystal",
+			#"pack",
+            "crystal",
             #"stack",
             ]
     parameters["molecule"] = ['PEEK',
@@ -99,7 +99,7 @@ def get_parameters():
     parameters["para_weight"] = [0.70]
     parameters["monomer_sequence"] = [None]
     parameters["density"] = [0.8]
-    parameters["n_compounds"] = [[10]]
+    parameters["n_compounds"] = [[32]]
     parameters["polymer_lengths"] = [[10]]   
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
@@ -108,6 +108,9 @@ def get_parameters():
     parameters["forcefield"] = ['gaff']
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
+    parameters["kwargs"] = [
+                {"n": 4, "a": 1.5, "b": 1.5}
+			]
 
     ### Simulation parameters ###
     parameters["tau_kt"] = [0.1]
