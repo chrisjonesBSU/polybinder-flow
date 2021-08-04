@@ -102,6 +102,7 @@ def sample(job):
                     system_type = job.sp["system_type"],
                     forcefield = job.sp["forcefield"],
                     remove_hydrogens = job.sp["remove_hydrogens"],
+					**job.sp["kwargs"]
                     )
 
             shrink_kT = job.sp['shrink_kT'] 
