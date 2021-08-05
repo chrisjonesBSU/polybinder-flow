@@ -24,6 +24,25 @@ class Fry(DefaultSlurmEnvironment):
             "--partition", default="batch", help="Specify the partition to submit to."
         )
 
+class Borah(DefaultSlurmEnvironment):
+    hostname_pattern = "borah"
+    template = "borah.sh"
+
+    @classmethod
+    def add_args(cls, parser):
+        parser.add_argument(
+            "--partition", default="gpu", help="Specify the partition to submit to."
+        )
+
+class R2(DefaultSlurmEnvironment):
+    hostname_pattern = "r2"
+    template = "r2.sh"
+
+    @classmethod
+    def add_args(cls, parser):
+        parser.add_argument(
+            "--partition", default="gpuq", help="Specify the partition to submit to."
+        )
 
 # Definition of project-related labels (classification)
 def current_step(job):
