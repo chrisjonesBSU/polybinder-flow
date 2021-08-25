@@ -158,7 +158,7 @@ def sample(job):
         simulation = simulate.Simulation(
                 system,
                 target_box = None,
-                r_cut = 1.2,
+                r_cut = job.sp["r_cut"],
                 e_factor = job.sp['e_factor'],
                 tau_kt = job.sp['tau_kt'],
 		        tau_p = job.sp['tau_p'],
