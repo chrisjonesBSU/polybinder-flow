@@ -97,17 +97,17 @@ def get_parameters():
             #"lamellar",
             #"coarse_grain",
             ]
-    parameters["molecule"] = ['PEEK',
-                             #'PEKK'
+    parameters["molecule"] = [#'PEEK',
+                             'PEKK'
                              ]
-    parameters["para_weight"] = [0.70]
+    parameters["para_weight"] = [1.0]
 
     parameters["monomer_sequence"] = [None]
     parameters["density"] = [0.8]
-    parameters["n_compounds"] = [[1]]
+    parameters["n_compounds"] = [[25]]
 
     #parameters["polymer_lengths"] = [None]
-    parameters["polymer_lengths"] = [[50]]   
+    parameters["polymer_lengths"] = [[10]]   
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
@@ -121,6 +121,7 @@ def get_parameters():
     parameters["tau_p"] = [None]
     parameters["pressure"] = [None]
     parameters["dt"] = [0.001]
+    parameters["r_cut"] = [2.5]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
     parameters["neighbor_list"] = ["cell"]
