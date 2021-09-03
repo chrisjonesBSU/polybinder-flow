@@ -89,17 +89,17 @@ def get_parameters():
     parameters = OrderedDict()
     ### System generation parameters ###
     parameters["system_type"] = [
-			#"pack",
-            "crystal",
+			"pack",
+            #"crystal",
             #"stack",
             ]
-    parameters["molecule"] = ['PEEK',
-                             #'PEKK'
+    parameters["molecule"] = [#'PEEK',
+                             'PEKK'
                              ]
-    parameters["para_weight"] = [0.70]
+    parameters["para_weight"] = [1.0]
     parameters["monomer_sequence"] = [None]
     parameters["density"] = [0.8]
-    parameters["n_compounds"] = [[32]]
+    parameters["n_compounds"] = [[25]]
     parameters["polymer_lengths"] = [[10]]   
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
@@ -109,7 +109,8 @@ def get_parameters():
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
     parameters["kwargs"] = [
-                {"n": 4, "a": 1.5, "b": 1.5}
+			{}
+           #     {"n": 4, "a": 1.5, "b": 1.5}
 			]
 
     ### Simulation parameters ###
@@ -117,20 +118,21 @@ def get_parameters():
     parameters["tau_p"] = [None]
     parameters["pressure"] = [None]
     parameters["dt"] = [0.001]
+    parameters["r_cut"] = [2.5]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
     parameters["neighbor_list"] = ["cell"]
     parameters["walls"] = [False]
-    parameters["shrink_kT"] = [0.2]
-    parameters["shrink_steps"] = [5e6]
-    parameters["shrink_period"] = [500]
+    parameters["shrink_kT"] = [10]
+    parameters["shrink_steps"] = [1e6]
+    parameters["shrink_period"] = [1]
     parameters["procedure"] = [
             "quench",
             #"anneal"
         ]
 
     ### Quench related parameters ###
-    parameters["kT_quench"] = [1.5]
+    parameters["kT_quench"] = [7]
     parameters["n_steps"] = [1e7]
 
     ### Anneal related parameters ###
