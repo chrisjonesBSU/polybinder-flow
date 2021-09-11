@@ -96,10 +96,10 @@ def get_parameters():
     parameters["molecule"] = [#'PEEK',
                              'PEKK'
                              ]
-    parameters["para_weight"] = [1.0]
-    parameters["monomer_sequence"] = [None]
-    parameters["density"] = [0.8]
-    parameters["n_compounds"] = [[25]]
+    parameters["para_weight"] = [None]
+    parameters["monomer_sequence"] = ["PM"]
+    parameters["density"] = [1.3]
+    parameters["n_compounds"] = [[72]]
     parameters["polymer_lengths"] = [[10]]   
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
@@ -108,6 +108,10 @@ def get_parameters():
     parameters["forcefield"] = ['gaff']
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
+    parameters["box_constraints"] = [{"x": None,
+                                      "y": None,
+                                      "z": None}
+									  ]
     parameters["kwargs"] = [
 			{}
            #     {"n": 4, "a": 1.5, "b": 1.5}
@@ -132,7 +136,7 @@ def get_parameters():
         ]
 
     ### Quench related parameters ###
-    parameters["kT_quench"] = [7]
+    parameters["kT_quench"] = [3.5]
     parameters["n_steps"] = [1e7]
 
     ### Anneal related parameters ###
@@ -159,7 +163,7 @@ def get_parameters():
 custom_job_doc = {} # added keys and values to be added to each job document created
 
 def main():
-    project = signac.init_project("project")
+    project = signac.init_project("test-box")
     param_names, param_combinations = get_parameters()
     # Create the generate jobs
     for params in param_combinations:
