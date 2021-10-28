@@ -100,7 +100,7 @@ def get_parameters():
     parameters["monomer_sequence"] = ["PM"]
     parameters["density"] = [1.3]
     parameters["n_compounds"] = [[72]]
-    parameters["polymer_lengths"] = [[10]]   
+    parameters["polymer_lengths"] = [[10]]
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
@@ -126,7 +126,7 @@ def get_parameters():
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
     parameters["neighbor_list"] = ["cell"]
-    parameters["walls"] = [False]
+    parameters["walls"] = [None]
     parameters["shrink_kT"] = [10]
     parameters["shrink_steps"] = [1e6]
     parameters["shrink_period"] = [1]
@@ -143,8 +143,8 @@ def get_parameters():
     # List of [initial kT, final kT] Reduced Temps
     #parameters["kT_anneal"] = [
     #        [6.0, 2.0]
-    #    ]     
-    # List of lists of number of steps 
+    #    ]
+    # List of lists of number of steps
     #parameters["anneal_sequence"] = [
     #        [2e5, 1e5, 3e5, 5e5, 5e5, 1e5]
     #    ]
@@ -179,7 +179,7 @@ def main():
             parent_job.doc.setdefault("sample_pdi", True)
         else:
             parent_job.doc.setdefault("sample_pdi", False)
-    
+
     if custom_job_doc:
         for key in custom_job_doc:
             parent_job.doc.setdefault(key, custom_job_doc[key])
