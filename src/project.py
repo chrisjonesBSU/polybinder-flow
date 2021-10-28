@@ -116,7 +116,7 @@ def sample(job):
                     Mw = job.sp['Mw'],
                     seed = job.sp['system_seed']
                 )
-            system = system.Initialize(
+            system = system.Initializer(
                     system = system_parms,
                     system_type = job.sp["system_type"],
                     forcefield = job.sp["forcefield"],
@@ -188,14 +188,13 @@ def sample(job):
         simulation = simulate.Simulation(
                 system,
                 r_cut = job.sp["r_cut"],
-                e_factor = job.sp['e_factor'],
                 tau_kt = job.sp['tau_kt'],
 		        tau_p = job.sp['tau_p'],
                 nlist = job.sp['neighbor_list'],
                 dt = job.sp['dt'],
                 seed = job.sp['sim_seed'],
                 auto_scale = True,
-                ref_units = None,
+                ref_values = None,
                 mode = "gpu",
                 gsd_write = max([int(job.doc['steps']/100), 1]),
                 log_write = max([int(job.doc['steps']/10000), 1])
@@ -228,7 +227,7 @@ def sample(job):
                     n_steps = job.sp['n_steps'],
                     shrink_kT = shrink_kT,
                     shrink_steps = shrink_steps,
-                    use_walls = job.sp['walls'],
+                    wall_axis = job.sp['walls'],
                     shrink_period = shrink_period
                     )
 
@@ -252,7 +251,7 @@ def sample(job):
                     schedule = job.sp['schedule'],
                     shrink_kT = shrink_kT,
                     shrink_steps = shrink_steps,
-                    use_walls = job.sp['walls'],
+                    wall_axis = job.sp['walls'],
                     shrink_period = shrink_period 
                     )
 
