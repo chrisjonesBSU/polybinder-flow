@@ -105,6 +105,7 @@ def get_parameters():
     # Simulation parameters
     parameters["tau_kt"] = [0.1]
     parameters["tau_p"] = [None]
+    parameters["pressure"] = [None]
     parameters["dt"] = [0.001]
     parameters["r_cut"] = [2.5]
     parameters["neighbor_list"] = ["cell"]
