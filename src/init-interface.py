@@ -92,18 +92,22 @@ def get_parameters():
     parameters["signac_args"] = [[None] # A way for signac to find the slab .gsd file(s) 
                                 ]   # Can be a job ID or a dictionary of state points
     
-    parameters["slab_file"] = [[None]]  # Full path to .gsd file(s)
+    parameters["slab_file"] = [
+			"/home/cjones/scratch/tensile/weld-sims/para_40mers_slab.gsd"
+		]  # Full path to .gsd file(s)
+
     parameters["interface_gap"] = [0.1]
-    parameters["reference_distance"] = [None]
+    parameters["weld_axis"] = ["z"]
+    parameters["reference_distance"] = [3.39]
     parameters["forcefield"] = ['gaff'] 
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
     # Simulation parameters
     parameters["tau"] = [0.1]
     parameters["dt"] = [0.001]
-    parameters["e_factor"] = [0.5]
+    parameters["neighbor_list"] = ["cell"]
     parameters["sim_seed"] = [42]
-    parameters["walls"] = [True]
+    parameters["walls"] = [[0,0,1]]
     parameters["system_type"] = ["interface"] # Don't change this
     parameters["procedure"] = [#"quench",
                               "anneal"
@@ -115,7 +119,7 @@ def get_parameters():
 
         # Anneal related params
     parameters["kT_anneal"] = [
-                               [6.0, 2.0]
+                               [5.5, 2.0]
                               ] # List of [initial kT, final kT] Reduced Temps
     parameters["anneal_sequence"] = [
                                      [2e5, 1e5, 3e5, 5e5, 5e5, 1e5] # List of lists (n_steps)
@@ -138,10 +142,10 @@ def main():
         except:
             parent_job.doc.setdefault("steps", np.sum(parent_statepoint["anneal_sequence"]))
             parent_job.doc.setdefault("step_sequence", parent_statepoint["anneal_sequence"])
-        if parent_job.sp['signac_args']:
+        if parent_job.sp['signac_args'] is [None]:
             parent_job.doc.setdefault("use_signac", True)
             parent_job.doc.setdefault("slab_files", parent_job.sp['signac_args'])
-        elif parent_job.sp['slab_file']:
+        elif parent_job.sp['slab_file'] is not [None]:
             parent_job.doc.setdefault("use_signac", False)
             parent_job.doc.setdefault("slab_files", parent_job.sp['slab_file'])
     
