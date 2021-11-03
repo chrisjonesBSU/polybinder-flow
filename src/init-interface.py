@@ -87,18 +87,18 @@ def get_parameters():
 
     parameters = OrderedDict()
     # System generation parameters:
-    parameters["signac_project"] = [None] # Path to projec that contains slabs.
+    parameters["signac_project"] = [
+            "/home/erjank_project/chrisjones/tensile/make_slabs"
+        ] # Path to projec that contains slabs.
                                           # Leave as None if they are in this current project
-    parameters["signac_args"] = [[None] # A way for signac to find the slab .gsd file(s)
+    parameters["signac_args"] = [["457240ab30858158b22ffceeda4bc813"] # A way for signac to find the slab .gsd file(s)
                                 ]   # Can be a job ID or a dictionary of state points
 
-    parameters["slab_file"] = [
-			"/home/cjones/scratch/tensile/weld-sims/para_40mers_slab.gsd"
-		]  # Full path to .gsd file(s)
+    parameters["slab_file"] = [None]  # Full path to .gsd file(s)
 
     parameters["interface_gap"] = [0.1]
     parameters["weld_axis"] = ["z"]
-    parameters["reference_distance"] = [3.39]
+    parameters["reference_distance"] = [0.339]
     parameters["forcefield"] = ['gaff']
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
@@ -144,7 +144,7 @@ def main():
         except:
             parent_job.doc.setdefault("steps", np.sum(parent_statepoint["anneal_sequence"]))
             parent_job.doc.setdefault("step_sequence", parent_statepoint["anneal_sequence"])
-        if parent_job.sp['signac_args'] is [None]:
+        if parent_job.sp['signac_args'] is not [None]:
             parent_job.doc.setdefault("use_signac", True)
             parent_job.doc.setdefault("slab_files", parent_job.sp['signac_args'])
         elif parent_job.sp['slab_file'] is not [None]:
