@@ -142,7 +142,7 @@ def sample(job):
         elif job.sp["system_type"] == "interface":
             slab_files = []
             ref_distances = []
-            if job.doc['use_signac']:
+            if job.doc['use_signac']is True:
                 signac_args = []
                 if isinstance(job.sp['signac_args'], list):
                     slab_1_arg = job.sp['signac_args'][0]
@@ -163,18 +163,16 @@ def sample(job):
                         _job = project.open_job(id=arg)
                         slab_files.append(_job.fn('restart.gsd'))
                         ref_distances.append(_job.doc['ref_distance']/10)
-            elif not job.doc['use_signac']: # Using a specified path to the .gsd file(s)
-                slab_files.append(job.sp['slab_file'])
+            elif job.doc['use_signac'] is False: # Using a specified path to the .gsd file(s)
+                slab_files.append(job.sp.slab_file)
                 ref_distances.append(job.sp['reference_distance'])
 
-            if len(ref_distances) == 2:
-                assert ref_distances[0] == ref_distances[1]
-
-            system = system.Interface(slabs = slab_files,
-                                        ref_distance = ref_distances[0],
-                                        gap = job.sp['interface_gap'],
-                                        forcefield = job.sp['forcefield'],
-                                        )
+            system = system.Interface(
+					slabs = slab_files,
+                    ref_distance = job.sp.reference_distance,
+                    gap = job.sp['interface_gap'],
+					weld_axis = job.sp["weld_axis"],
+                )
 
             job.doc['slab_ref_distances'] = system.ref_distance
             shrink_kT = None 
