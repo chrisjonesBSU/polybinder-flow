@@ -83,7 +83,7 @@ def msd_done(job):
             return False
     except:
         return False
-    
+
 
 @MyProject.label
 def ind_sampling_done(job):
@@ -131,7 +131,7 @@ def sample(job):
                     )
             job.doc["target_volume"] = system.target_box
 
-            shrink_kT = job.sp['shrink_kT'] 
+            shrink_kT = job.sp['shrink_kT']
             shrink_steps = job.sp['shrink_steps']
             shrink_period = job.sp['shrink_period']
             job.doc['num_para'] = system_parms.para
@@ -153,9 +153,11 @@ def sample(job):
                 elif not isinstance(job.sp['signac_args'], list):
                     signac_args.append(job.sp['signac_args'])
 
-                project = signac.get_project(root=job.sp['signac_project'], search=True)
+                project = signac.get_project(
+                        root=job.sp['signac_project'], search=True
+                    )
                 for arg in signac_args:
-                    if isinstance(arg, signac.core.attrdict.SyncedAttrDict): 
+                    if isinstance(arg, signac.core.attrdict.SyncedAttrDict):
                         _job = list(project.find_jobs(filter=arg))[0]
                         slab_files.append(_job.fn('restart.gsd'))
                         ref_distances.append(_job.doc['ref_distance']/10)
@@ -163,19 +165,19 @@ def sample(job):
                         _job = project.open_job(id=arg)
                         slab_files.append(_job.fn('restart.gsd'))
                         ref_distances.append(_job.doc['ref_distance']/10)
-            elif job.doc['use_signac'] is False: # Using a specified path to the .gsd file(s)
+            elif job.doc['use_signac'] is False:
                 slab_files.append(job.sp.slab_file)
                 ref_distances.append(job.sp['reference_distance'])
 
             system = system.Interface(
 					slabs = slab_files,
-                    ref_distance = job.sp.reference_distance,
+                    ref_distance = ref_distances[0],
                     gap = job.sp['interface_gap'],
 					weld_axis = job.sp["weld_axis"],
                 )
 
             job.doc['slab_ref_distances'] = system.ref_distance
-            shrink_kT = None 
+            shrink_kT = None
             shrink_steps = None
             shrink_period = None
 
@@ -250,7 +252,7 @@ def sample(job):
                     shrink_kT = shrink_kT,
                     shrink_steps = shrink_steps,
                     wall_axis = job.sp['walls'],
-                    shrink_period = shrink_period 
+                    shrink_period = shrink_period
                     )
 
 if __name__ == "__main__":

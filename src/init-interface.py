@@ -89,9 +89,9 @@ def get_parameters():
     # System generation parameters:
     parameters["signac_project"] = [None] # Path to projec that contains slabs.
                                           # Leave as None if they are in this current project
-    parameters["signac_args"] = [[None] # A way for signac to find the slab .gsd file(s) 
+    parameters["signac_args"] = [[None] # A way for signac to find the slab .gsd file(s)
                                 ]   # Can be a job ID or a dictionary of state points
-    
+
     parameters["slab_file"] = [
 			"/home/cjones/scratch/tensile/weld-sims/para_40mers_slab.gsd"
 		]  # Full path to .gsd file(s)
@@ -99,7 +99,7 @@ def get_parameters():
     parameters["interface_gap"] = [0.1]
     parameters["weld_axis"] = ["z"]
     parameters["reference_distance"] = [3.39]
-    parameters["forcefield"] = ['gaff'] 
+    parameters["forcefield"] = ['gaff']
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
     # Simulation parameters
@@ -150,7 +150,7 @@ def main():
         elif parent_job.sp['slab_file'] is not [None]:
             parent_job.doc.setdefault("use_signac", False)
             parent_job.doc.setdefault("slab_files", parent_job.sp['slab_file'])
-    
+
     if custom_job_doc:
         for key in custom_job_doc:
             parent_job.doc.setdefault(key, custom_job_doc[key])
