@@ -103,8 +103,10 @@ def get_parameters():
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
     # Simulation parameters
-    parameters["tau"] = [0.1]
+    parameters["tau_kt"] = [0.1]
+    parameters["tau_p"] = [None]
     parameters["dt"] = [0.001]
+    parameters["r_cut"] = [2.5]
     parameters["neighbor_list"] = ["cell"]
     parameters["sim_seed"] = [42]
     parameters["walls"] = [[0,0,1]]
