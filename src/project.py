@@ -157,7 +157,7 @@ def sample(job):
                         root=job.sp['signac_project'], search=True
                     )
                 for arg in signac_args:
-                    if isinstance(arg, signac.core.attrdict.SyncedAttrDict):
+                    if isinstance(arg, dict):
                         _job = list(project.find_jobs(filter=arg))[0]
                         slab_files.append(_job.fn('restart.gsd'))
                         ref_distances.append(_job.doc['ref_distance']/10)
