@@ -83,7 +83,7 @@ def msd_done(job):
             return False
     except:
         return False
-    
+
 
 @MyProject.label
 def ind_sampling_done(job):
@@ -101,37 +101,50 @@ def sample(job):
     import logging
 
     with job:
+        print(job.id)
         logging.info("Creating system...")
         if job.sp["system_type"] != "interface":
-            system = system.System(
-                    molecule = job.sp['molecule'],
-                    para_weight = job.sp['para_weight'],
-                    monomer_sequence = job.sp['monomer_sequence'],
+            system_parms = system.System(
                     density = job.sp['density'],
+                    molecule = job.sp['molecule'],
                     n_compounds = job.sp['n_compounds'],
                     polymer_lengths = job.sp["polymer_lengths"],
-                    system_type = job.sp["system_type"],
-                    forcefield = job.sp['forcefield'],
+                    para_weight = job.sp['para_weight'],
+                    monomer_sequence = job.sp['monomer_sequence'],
                     sample_pdi = job.doc.sample_pdi,
                     pdi = job.sp['pdi'],
                     Mn = job.sp['Mn'],
                     Mw = job.sp['Mw'],
-                    mass_dist_type = job.sp['mass_dist'],
-                    remove_hydrogens = job.sp['remove_hydrogens'],
                     seed = job.sp['system_seed']
                 )
-            shrink_kT = job.sp['shrink_kT'] 
+            system = system.Initializer(
+                    system = system_parms,
+                    system_type = job.sp["system_type"],
+                    forcefield = job.sp["forcefield"],
+                    remove_hydrogens = job.sp["remove_hydrogens"],
+					**job.sp["kwargs"]
+                    )
+            if any(list(job.sp["box_constraints"].values())):
+                system.target_box = system.set_target_box(
+                        job.sp["box_constraints"]["x"],
+                        job.sp["box_constraints"]["y"],
+                        job.sp["box_constraints"]["z"]
+                    )
+            job.doc["target_volume"] = system.target_box
+
+            shrink_kT = job.sp['shrink_kT']
             shrink_steps = job.sp['shrink_steps']
-            shrink_period = 500
-            job.doc['num_para'] = system.para
-            job.doc['num_meta'] = system.meta
-            job.doc['num_compounds'] = system.n_compounds
-            job.doc['polymer_lengths'] = system.polymer_lengths
+            shrink_period = job.sp['shrink_period']
+            job.doc['num_para'] = system_parms.para
+            job.doc['num_meta'] = system_parms.meta
+            job.doc['num_compounds'] = system_parms.n_compounds
+            job.doc['polymer_lengths'] = system_parms.polymer_lengths
+            job.doc["chain_sequences"] = system_parms.molecule_sequences
 
         elif job.sp["system_type"] == "interface":
             slab_files = []
             ref_distances = []
-            if job.doc['use_signac']:
+            if job.doc['use_signac']is True:
                 signac_args = []
                 if isinstance(job.sp['signac_args'], list):
                     slab_1_arg = job.sp['signac_args'][0]
@@ -142,9 +155,11 @@ def sample(job):
                 elif not isinstance(job.sp['signac_args'], list):
                     signac_args.append(job.sp['signac_args'])
 
-                project = signac.get_project(root=job.sp['signac_project'], search=True)
+                project = signac.get_project(
+                        root=job.sp['signac_project'], search=True
+                    )
                 for arg in signac_args:
-                    if isinstance(arg, signac.core.attrdict.SyncedAttrDict): 
+                    if isinstance(arg, dict):
                         _job = list(project.find_jobs(filter=arg))[0]
                         slab_files.append(_job.fn('restart.gsd'))
                         ref_distances.append(_job.doc['ref_distance']/10)
@@ -152,21 +167,19 @@ def sample(job):
                         _job = project.open_job(id=arg)
                         slab_files.append(_job.fn('restart.gsd'))
                         ref_distances.append(_job.doc['ref_distance']/10)
-            elif not job.doc['use_signac']: # Using a specified path to the .gsd file(s)
-                slab_files.append(job.sp['slab_file'])
+            elif job.doc['use_signac'] is False:
+                slab_files.append(job.sp.slab_file)
                 ref_distances.append(job.sp['reference_distance'])
 
-            if len(ref_distances) == 2:
-                assert ref_distances[0] == ref_distances[1]
-
-            system = system.Interface(slabs = slab_files,
-                                        ref_distance = ref_distances[0],
-                                        gap = job.sp['interface_gap'],
-                                        forcefield = job.sp['forcefield'],
-                                        )
+            system = system.Interface(
+					slabs = slab_files,
+                    ref_distance = ref_distances[0],
+                    gap = job.sp['interface_gap'],
+					weld_axis = job.sp["weld_axis"],
+                )
 
             job.doc['slab_ref_distances'] = system.ref_distance
-            shrink_kT = None 
+            shrink_kT = None
             shrink_steps = None
             shrink_period = None
 
@@ -176,16 +189,14 @@ def sample(job):
 
         simulation = simulate.Simulation(
                 system,
-                target_box = None,
                 r_cut = job.sp["r_cut"],
-                e_factor = job.sp['e_factor'],
                 tau_kt = job.sp['tau_kt'],
 		        tau_p = job.sp['tau_p'],
                 nlist = job.sp['neighbor_list'],
                 dt = job.sp['dt'],
                 seed = job.sp['sim_seed'],
                 auto_scale = True,
-                ref_units = None,
+                ref_values = None,
                 mode = "gpu",
                 gsd_write = max([int(job.doc['steps']/100), 1]),
                 log_write = max([int(job.doc['steps']/10000), 1])
@@ -195,17 +206,21 @@ def sample(job):
         job.doc['ref_energy'] = simulation.ref_energy
         job.doc['ref_distance'] = simulation.ref_distance
         job.doc['ref_mass'] = simulation.ref_mass
-        job.doc['real_timestep'] = unit_conversions.convert_to_real_time(simulation.dt,
-                                                    simulation.ref_energy,
-                                                    simulation.ref_distance,
-                                                    simulation.ref_mass)
+        job.doc['real_timestep'] = unit_conversions.convert_to_real_time(
+                                    simulation.dt,
+                                    simulation.ref_energy,
+                                    simulation.ref_distance,
+                                    simulation.ref_mass
+                            )
         job.doc['time_unit'] = 'fs'
         job.doc['steps_per_frame'] = simulation.gsd_write
         job.doc['steps_per_log'] = simulation.log_write
 
         if job.sp['procedure'] == "quench":
-            job.doc['T_SI'] = unit_conversions.kelvin_from_reduced(job.sp['kT_quench'],
-                                                    simulation.ref_energy)
+            job.doc['T_SI'] = unit_conversions.kelvin_from_reduced(
+                                    job.sp['kT_quench'],
+                                    simulation.ref_energy
+                            )
             job.doc['T_unit'] = 'K'
             logging.info("Beginning quench simulation...")
             simulation.quench(
@@ -214,7 +229,7 @@ def sample(job):
                     n_steps = job.sp['n_steps'],
                     shrink_kT = shrink_kT,
                     shrink_steps = shrink_steps,
-                    walls = job.sp['walls'],
+                    wall_axis = job.sp['walls'],
                     shrink_period = shrink_period
                     )
 
@@ -225,8 +240,11 @@ def sample(job):
                                       job.sp['kT_anneal'][1],
                                       len(job.sp['anneal_sequence']),
                                       )
-                kT_SI = [unit_conversions.kelvin_from_reduced(kT, simulation.ref_energy)
-                            for kT in kT_list]
+                kT_SI = [
+                        unit_conversions.kelvin_from_reduced(
+                            kT, simulation.ref_energy
+                        ) for kT in kT_list
+                        ]
                 job.doc['T_SI'] = kT_SI
                 job.doc['T_unit'] = 'K'
 
@@ -238,8 +256,8 @@ def sample(job):
                     schedule = job.sp['schedule'],
                     shrink_kT = shrink_kT,
                     shrink_steps = shrink_steps,
-                    walls = job.sp['walls'],
-                    shrink_period = shrink_period 
+                    wall_axis = job.sp['walls'],
+                    shrink_period = shrink_period
                     )
 
 if __name__ == "__main__":

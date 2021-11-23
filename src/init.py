@@ -14,7 +14,6 @@ import signac
 import logging
 from collections import OrderedDict
 from itertools import product
-import numpy as np
 
 def get_parameters():
     '''
@@ -86,28 +85,22 @@ def get_parameters():
         Comment out kT_quench and n_steps lines
 
     Don't forget to change the name of the project
-    project = signac.init_project("project-name")
     '''
-
     parameters = OrderedDict()
     ### System generation parameters ###
     parameters["system_type"] = [
 			"pack",
+            #"crystal",
             #"stack",
-            #"lamellar",
-            #"coarse_grain",
             ]
     parameters["molecule"] = [#'PEEK',
                              'PEKK'
                              ]
-    parameters["para_weight"] = [1.0]
-
-    parameters["monomer_sequence"] = [None]
-    parameters["density"] = [0.8]
-    parameters["n_compounds"] = [[25]]
-
-    #parameters["polymer_lengths"] = [None]
-    parameters["polymer_lengths"] = [[10]]   
+    parameters["para_weight"] = [None]
+    parameters["monomer_sequence"] = ["PM"]
+    parameters["density"] = [1.3]
+    parameters["n_compounds"] = [[72]]
+    parameters["polymer_lengths"] = [[10]]
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
@@ -115,6 +108,14 @@ def get_parameters():
     parameters["forcefield"] = ['gaff']
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
+    parameters["box_constraints"] = [{"x": None,
+                                      "y": None,
+                                      "z": None}
+									  ]
+    parameters["kwargs"] = [
+			{}
+           #     {"n": 4, "a": 1.5, "b": 1.5}
+			]
 
     ### Simulation parameters ###
     parameters["tau_kt"] = [0.1]
@@ -125,24 +126,25 @@ def get_parameters():
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
     parameters["neighbor_list"] = ["cell"]
-    parameters["walls"] = [False]
-    parameters["shrink_kT"] = [0.2]
-    parameters["shrink_steps"] = [5e6]
+    parameters["walls"] = [None]
+    parameters["shrink_kT"] = [10]
+    parameters["shrink_steps"] = [1e6]
+    parameters["shrink_period"] = [1]
     parameters["procedure"] = [
             "quench",
             #"anneal"
         ]
 
     ### Quench related parameters ###
-    parameters["kT_quench"] = [1.5]
+    parameters["kT_quench"] = [3.5]
     parameters["n_steps"] = [1e7]
 
     ### Anneal related parameters ###
     # List of [initial kT, final kT] Reduced Temps
     #parameters["kT_anneal"] = [
     #        [6.0, 2.0]
-    #    ]     
-    # List of lists of number of steps 
+    #    ]
+    # List of lists of number of steps
     #parameters["anneal_sequence"] = [
     #        [2e5, 1e5, 3e5, 5e5, 5e5, 1e5]
     #    ]
@@ -159,9 +161,9 @@ def get_parameters():
     return list(parameters.keys()), list(product(*parameters.values()))
 
 custom_job_doc = {} # added keys and values to be added to each job document created
-                    # leave blank to create for job doc entries
+
 def main():
-    project = signac.init_project("project")
+    project = signac.init_project("test-box")
     param_names, param_combinations = get_parameters()
     # Create the generate jobs
     for params in param_combinations:
@@ -170,14 +172,14 @@ def main():
         parent_job.init()
         try:
             parent_job.doc.setdefault("steps", parent_statepoint["n_steps"])
-        except:
-            parent_job.doc.setdefault("steps", np.sum(parent_statepoint["anneal_sequence"]))
+        except KeyError:
+            parent_job.doc.setdefault("steps", sum(parent_statepoint["anneal_sequence"]))
             parent_job.doc.setdefault("step_sequence", parent_statepoint["anneal_sequence"])
         if any([parent_job.sp['Mn'], parent_job.sp['pdi'], parent_job.sp['Mw']]):
             parent_job.doc.setdefault("sample_pdi", True)
         else:
             parent_job.doc.setdefault("sample_pdi", False)
-    
+
     if custom_job_doc:
         for key in custom_job_doc:
             parent_job.doc.setdefault(key, custom_job_doc[key])
