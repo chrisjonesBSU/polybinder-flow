@@ -14,16 +14,6 @@ import os
 class MyProject(FlowProject):
     pass
 
-class Fry(DefaultSlurmEnvironment):
-    hostname_pattern = "fry"
-    template = "fry.sh"
-
-    @classmethod
-    def add_args(cls, parser):
-        parser.add_argument(
-            "--partition", default="batch", help="Specify the partition to submit to."
-        )
-
 class Borah(DefaultSlurmEnvironment):
     hostname_pattern = "borah"
     template = "borah.sh"
@@ -42,6 +32,16 @@ class R2(DefaultSlurmEnvironment):
     def add_args(cls, parser):
         parser.add_argument(
             "--partition", default="gpuq", help="Specify the partition to submit to."
+        )
+
+class Fry(DefaultSlurmEnvironment):
+    hostname_pattern = "fry"
+    template = "fry.sh"
+
+    @classmethod
+    def add_args(cls, parser):
+        parser.add_argument(
+            "--partition", default="batch", help="Specify the partition to submit to."
         )
 
 # Definition of project-related labels (classification)
