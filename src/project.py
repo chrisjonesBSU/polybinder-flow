@@ -101,6 +101,7 @@ def sample(job):
     import logging
 
     with job:
+        print(job.id)
         logging.info("Creating system...")
         if job.sp["system_type"] != "interface":
             system_parms = system.System(
@@ -138,6 +139,7 @@ def sample(job):
             job.doc['num_meta'] = system_parms.meta
             job.doc['num_compounds'] = system_parms.n_compounds
             job.doc['polymer_lengths'] = system_parms.polymer_lengths
+            job.doc["chain_sequences"] = system_parms.molecule_sequences
 
         elif job.sp["system_type"] == "interface":
             slab_files = []
@@ -238,8 +240,11 @@ def sample(job):
                                       job.sp['kT_anneal'][1],
                                       len(job.sp['anneal_sequence']),
                                       )
-                kT_SI = [unit_conversions.kelvin_from_reduced(kT, simulation.ref_energy)
-                            for kT in kT_list]
+                kT_SI = [
+                        unit_conversions.kelvin_from_reduced(
+                            kT, simulation.ref_energy
+                        ) for kT in kT_list
+                        ]
                 job.doc['T_SI'] = kT_SI
                 job.doc['T_unit'] = 'K'
 
