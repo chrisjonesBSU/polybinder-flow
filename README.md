@@ -6,7 +6,7 @@ This repository contains the scripts needed in order to use [Signac and Signac-f
 
 ### Install and follow the set up instructions for PolyBinder:
 
-[uli-init](https://github.com/cmelab/polybinder)
+[PolyBinder](https://github.com/cmelab/polybinder)
 
 ### Clone this repo:
 
