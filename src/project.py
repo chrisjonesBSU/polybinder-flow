@@ -61,7 +61,10 @@ def sampled(job):
 
 @MyProject.label
 def initialized(job):
-    return job.isfile("init.mol2")
+    if job.sp.coarse_grain == False:
+        return job.isfile("init.mol2")
+    else:
+        return job.isfile("atomistic_gsd.gsd")
 
 
 @directives(executable="python -u")
@@ -178,7 +181,9 @@ def sample(job):
             shrink_steps = None
             shrink_period = None
 
-        system.system.save('init.mol2', overwrite=True)
+        if job.sp.coarse_grain == False:
+            system.system.save('init.mol2', overwrite=True)
+
         logging.info("System generated...")
         logging.info("Starting simulation...")
 
