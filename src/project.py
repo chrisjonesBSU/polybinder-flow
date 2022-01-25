@@ -69,8 +69,8 @@ def initialized(job):
 @MyProject.operation
 @MyProject.post(sampled)
 def sample(job):
-    from uli_init import simulate, system
-    from uli_init.utils import base_units, unit_conversions
+    from polybinder import simulate, system
+    from polybinder.utils import base_units, unit_conversions
     import numpy as np
     import logging
 
