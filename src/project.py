@@ -194,7 +194,7 @@ def sample(job):
                 ref_values = ref_values,
                 mode = "gpu",
                 gsd_write = max([int(job.doc['steps']/100), 1]),
-                log_write = max([int(job.doc['steps']/10000), 1])
+                log_write = max([int(job.doc['steps']/10000), 1]),
                 bond_dicts = bond_dicts,
                 angle_dicts = angle_dicts
         )
