@@ -117,9 +117,12 @@ def get_parameters():
 	]
 
     ### COARSE-GRAINING PARAMETERS ###
+    # NOTE: If coarse-graining, double-check your r-cut value
+    # relative to your coarse-grained potentials
     parameters["coarse_grain"] = [False]
     parameters["ref_distance"] = [None]
     parameters["ref_mass"] = [None]
+    parameters["ref_energy"] = [None]
     parameters["bond_dict"] = [{}]
     parameters["angle_dict"] = [{}]
     parameters["bead_mapping"] = [None]

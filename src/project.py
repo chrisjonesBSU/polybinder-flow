@@ -64,32 +64,6 @@ def initialized(job):
     return job.isfile("init.mol2")
 
 
-@MyProject.label
-def rdf_done(job):
-    try:
-        if len(os.listdir(os.path.join(job.ws, 'rdf-results'))) > 0:
-            return True
-        else:
-            return False
-    except:
-        return False
-
-@MyProject.label
-def msd_done(job):
-    try:
-        if len(os.listdir(os.path.join(job.ws, 'msd-results'))) > 0:
-            return True
-        else:
-            return False
-    except:
-        return False
-
-
-@MyProject.label
-def ind_sampling_done(job):
-    return job.isfile("sim_traj_equil.log")
-
-
 @directives(executable="python -u")
 @directives(ngpu=1)
 @MyProject.operation
@@ -131,6 +105,27 @@ def sample(job):
                         job.sp["box_constraints"]["z"]
                     )
             job.doc["target_volume"] = system.target_box
+
+            bond_dicts = None
+            angle_dicts = None
+            ref_values = None
+            auto_scale = True
+
+            if job.sp.coarse_grain == True:
+                system.coarse_grain_system(
+                        ref_distance=job.sp.ref_distance,
+                        ref_mass=job.sp.ref_mass,
+                        bead_mapping=job.sp.bead_mapping
+                )
+
+                bond_dicts = job.sp.bond_dict
+                angle_dicts = job.sp.angle_dict
+                ref_values = {
+                    "distance": job.sp.ref_distance,
+                    "energy": job.sp.ref_energy,
+                    "mass": job.sp.ref_mass
+                }
+                auto_scale = False
 
             shrink_kT = job.sp['shrink_kT']
             shrink_steps = job.sp['shrink_steps']
@@ -195,12 +190,14 @@ def sample(job):
                 nlist = job.sp['neighbor_list'],
                 dt = job.sp['dt'],
                 seed = job.sp['sim_seed'],
-                auto_scale = True,
-                ref_values = None,
+                auto_scale = auto_scale,
+                ref_values = ref_values,
                 mode = "gpu",
                 gsd_write = max([int(job.doc['steps']/100), 1]),
                 log_write = max([int(job.doc['steps']/10000), 1])
-                )
+                bond_dicts = bond_dicts,
+                angle_dicts = angle_dicts
+        )
 
         logging.info("Simulation object generated...")
         job.doc['ref_energy'] = simulation.ref_energy
@@ -231,7 +228,7 @@ def sample(job):
                     shrink_steps = shrink_steps,
                     wall_axis = job.sp['walls'],
                     shrink_period = shrink_period
-                    )
+            )
 
         elif job.sp['procedure'] == "anneal":
             logging.info("Beginning anneal simulation...")
@@ -258,7 +255,7 @@ def sample(job):
                     shrink_steps = shrink_steps,
                     wall_axis = job.sp['walls'],
                     shrink_period = shrink_period
-                    )
+            )
 
 if __name__ == "__main__":
     MyProject().main()
