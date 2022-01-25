@@ -87,17 +87,17 @@ def get_parameters():
     Don't forget to change the name of the project
     '''
     parameters = OrderedDict()
-    ### System generation parameters ###
+
+    ### SYSTEM GENERATION PARAMETERS ###
     parameters["system_type"] = [
-			"pack",
-            #"crystal",
-            #"stack",
-            ]
-    parameters["molecule"] = [#'PEEK',
-                             'PEKK'
-                             ]
+            "pack", #"crystal", #"stack",
+    ]
+    parameters["molecule"] = [
+            #'PEEK',
+            'PEKK'
+    ]
     parameters["para_weight"] = [None]
-    parameters["monomer_sequence"] = ["PM"]
+    parameters["monomer_sequence"] = ["P"]
     parameters["density"] = [1.3]
     parameters["n_compounds"] = [[72]]
     parameters["polymer_lengths"] = [[10]]
@@ -108,16 +108,24 @@ def get_parameters():
     parameters["forcefield"] = ['gaff']
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
-    parameters["box_constraints"] = [{"x": None,
-                                      "y": None,
-                                      "z": None}
-									  ]
+    parameters["box_constraints"] = [
+            {"x": None, "y": None, "z": None}
+	]
     parameters["kwargs"] = [
-			{}
-           #     {"n": 4, "a": 1.5, "b": 1.5}
-			]
+			{},
+           #{"n": 4, "a": 1.5, "b": 1.5}
+	]
 
-    ### Simulation parameters ###
+    ### COARSE-GRAINING PARAMETERS ###
+    parameters["coarse_grain"] = [False]
+    parameters["ref_distance"] = [None]
+    parameters["ref_mass"] = [None]
+    parameters["bond_dict"] = [{}]
+    parameters["angle_dict"] = [{}]
+    parameters["bead_mapping"] = [None]
+
+
+    ### SIMULATION PARAMETERS ###
     parameters["tau_kt"] = [0.1]
     parameters["tau_p"] = [None]
     parameters["pressure"] = [None]
