@@ -99,13 +99,13 @@ def get_parameters():
     parameters["para_weight"] = [None]
     parameters["monomer_sequence"] = ["P"]
     parameters["density"] = [1.3]
-    parameters["n_compounds"] = [[72]]
-    parameters["polymer_lengths"] = [[10]]
+    parameters["n_compounds"] = [[1000]]
+    parameters["polymer_lengths"] = [[30]]
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
     parameters['mass_dist'] = ['weibull']
-    parameters["forcefield"] = ['gaff']
+    parameters["forcefield"] = ["gaff"]
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
     parameters["box_constraints"] = [
@@ -120,14 +120,20 @@ def get_parameters():
     # NOTE: If coarse-graining, double-check your r-cut value
     # relative to your coarse-grained potentials
     parameters["coarse_grain"] = [False]
-    parameters["ref_distance"] = [None]
-    parameters["ref_mass"] = [None]
-    parameters["ref_energy"] = [None]
-    parameters["bond_dict"] = [{}]
-    parameters["angle_dict"] = [{}]
-    parameters["bead_mapping"] = [None]
-
-
+    """
+    parameters["ref_distance"] = [3.3997] # Angstrom
+    parameters["ref_mass"] = [15.99] # AMU
+    parameters["ref_energy"] = [0.21] # kJ/mol
+    parameters["bond_dict"] = [
+            [{"type1": "E", "type2": "K", "k": 500, "r0": 1.53},
+            {"type1": "K", "type2": "K", "k": 500, "r0": 1.56}]
+    ]
+    parameters["angle_dict"] = [
+            [{"type1":"E", "type2":"K", "type3":"K", "k":50, "theta0":2.4},
+             {"type1":"K", "type2":"E", "type3":"K", "k":50, "theta0":2.6}]
+    ]
+    parameters["bead_mapping"] = ["ring_plus_linkage_UA"]
+    """
     ### SIMULATION PARAMETERS ###
     parameters["tau_kt"] = [0.1]
     parameters["tau_p"] = [None]
@@ -147,8 +153,8 @@ def get_parameters():
         ]
 
     ### Quench related parameters ###
-    parameters["kT_quench"] = [3.5]
-    parameters["n_steps"] = [1e7]
+    parameters["kT_quench"] = [5.5]
+    parameters["n_steps"] = [1e6]
 
     ### Anneal related parameters ###
     # List of [initial kT, final kT] Reduced Temps
