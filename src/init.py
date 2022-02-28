@@ -87,37 +87,54 @@ def get_parameters():
     Don't forget to change the name of the project
     '''
     parameters = OrderedDict()
-    ### System generation parameters ###
+
+    ### SYSTEM GENERATION PARAMETERS ###
     parameters["system_type"] = [
-			"pack",
-            #"crystal",
-            #"stack",
-            ]
-    parameters["molecule"] = [#'PEEK',
-                             'PEKK'
-                             ]
+            "pack", #"crystal", #"stack",
+    ]
+    parameters["molecule"] = [
+            #'PEEK',
+            'PEKK'
+    ]
     parameters["para_weight"] = [None]
-    parameters["monomer_sequence"] = ["PM"]
+    parameters["monomer_sequence"] = ["P"]
     parameters["density"] = [1.3]
-    parameters["n_compounds"] = [[72]]
-    parameters["polymer_lengths"] = [[10]]
+    parameters["n_compounds"] = [[1000]]
+    parameters["polymer_lengths"] = [[30]]
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
     parameters['mass_dist'] = ['weibull']
-    parameters["forcefield"] = ['gaff']
+    parameters["forcefield"] = ["gaff"]
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
-    parameters["box_constraints"] = [{"x": None,
-                                      "y": None,
-                                      "z": None}
-									  ]
+    parameters["box_constraints"] = [
+            {"x": None, "y": None, "z": None}
+	]
     parameters["kwargs"] = [
-			{}
-           #     {"n": 4, "a": 1.5, "b": 1.5}
-			]
+			{},
+           #{"n": 4, "a": 1.5, "b": 1.5}
+	]
 
-    ### Simulation parameters ###
+    ### COARSE-GRAINING PARAMETERS ###
+    # NOTE: If coarse-graining, double-check your r-cut value
+    # relative to your coarse-grained potentials
+    parameters["coarse_grain"] = [False]
+    """
+    parameters["ref_distance"] = [3.3997] # Angstrom
+    parameters["ref_mass"] = [15.99] # AMU
+    parameters["ref_energy"] = [0.21] # kJ/mol
+    parameters["bond_dict"] = [
+            [{"type1": "E", "type2": "K", "k": 500, "r0": 1.53},
+            {"type1": "K", "type2": "K", "k": 500, "r0": 1.56}]
+    ]
+    parameters["angle_dict"] = [
+            [{"type1":"E", "type2":"K", "type3":"K", "k":50, "theta0":2.4},
+             {"type1":"K", "type2":"E", "type3":"K", "k":50, "theta0":2.6}]
+    ]
+    parameters["bead_mapping"] = ["ring_plus_linkage_UA"]
+    """
+    ### SIMULATION PARAMETERS ###
     parameters["tau_kt"] = [0.1]
     parameters["tau_p"] = [None]
     parameters["pressure"] = [None]
@@ -136,8 +153,8 @@ def get_parameters():
         ]
 
     ### Quench related parameters ###
-    parameters["kT_quench"] = [3.5]
-    parameters["n_steps"] = [1e7]
+    parameters["kT_quench"] = [5.5]
+    parameters["n_steps"] = [1e6]
 
     ### Anneal related parameters ###
     # List of [initial kT, final kT] Reduced Temps
@@ -160,10 +177,10 @@ def get_parameters():
                 )
     return list(parameters.keys()), list(product(*parameters.values()))
 
-custom_job_doc = {} # added keys and values to be added to each job document created
+custom_job_doc = {} # add keys and values to be added to each job document created
 
 def main():
-    project = signac.init_project("test-box")
+    project = signac.init_project("project") # Set the signac project name
     param_names, param_combinations = get_parameters()
     # Create the generate jobs
     for params in param_combinations:
