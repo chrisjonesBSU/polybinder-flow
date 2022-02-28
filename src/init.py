@@ -177,10 +177,10 @@ def get_parameters():
                 )
     return list(parameters.keys()), list(product(*parameters.values()))
 
-custom_job_doc = {} # added keys and values to be added to each job document created
+custom_job_doc = {} # add keys and values to be added to each job document created
 
 def main():
-    project = signac.init_project("test-box")
+    project = signac.init_project("project") # Set the signac project name
     param_names, param_combinations = get_parameters()
     # Create the generate jobs
     for params in param_combinations:
