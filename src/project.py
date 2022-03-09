@@ -45,18 +45,9 @@ class Fry(DefaultSlurmEnvironment):
         )
 
 # Definition of project-related labels (classification)
-def current_step(job):
-    import gsd.hoomd
-
-    if job.isfile("sim_traj.gsd"):
-        with gsd.hoomd.open(job.fn("sim_traj.gsd")) as traj:
-            return traj[-1].configuration.step
-    return -1
-
-
 @MyProject.label
 def sampled(job):
-    return current_step(job) >= job.doc.steps
+    return job.doc.get("done")
 
 
 @MyProject.label
@@ -79,6 +70,7 @@ def sample(job):
 
     with job:
         print(job.id)
+        job.doc["done"] = False
         logging.info("Creating system...")
         if job.sp["system_type"] != "interface":
             system_parms = system.System(
@@ -261,6 +253,7 @@ def sample(job):
                     wall_axis = job.sp['walls'],
                     shrink_period = shrink_period
             )
+        job.doc["done"] = True
 
 if __name__ == "__main__":
     MyProject().main()
