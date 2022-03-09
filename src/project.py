@@ -92,17 +92,15 @@ def sample(job):
                     forcefield = job.sp["forcefield"],
                     remove_hydrogens = job.sp["remove_hydrogens"],
 					**job.sp["kwargs"]
-                    )
+            )
             if any(list(job.sp["box_constraints"].values())):
                 system.target_box = system.set_target_box(
                         job.sp["box_constraints"]["x"],
                         job.sp["box_constraints"]["y"],
                         job.sp["box_constraints"]["z"]
-                    )
+                )
             job.doc["target_volume"] = system.target_box
 
-            bond_dicts = None
-            angle_dicts = None
             ref_values = None
             auto_scale = True
 
@@ -113,14 +111,13 @@ def sample(job):
                         bead_mapping=job.sp.bead_mapping
                 )
 
-                bond_dicts = job.sp.bond_dict
-                angle_dicts = job.sp.angle_dict
                 ref_values = {
                     "distance": job.sp.ref_distance,
                     "energy": job.sp.ref_energy,
                     "mass": job.sp.ref_mass
                 }
                 auto_scale = False
+				cg_potentials_dir = job.sp.cg_potentials_dir
 
             shrink_kT = job.sp['shrink_kT']
             shrink_steps = job.sp['shrink_steps']
@@ -166,7 +163,7 @@ def sample(job):
                     ref_distance = ref_distances[0],
                     gap = job.sp['interface_gap'],
 					weld_axis = job.sp["weld_axis"],
-                )
+            )
 
             job.doc['slab_ref_distances'] = system.ref_distance
             shrink_kT = None
@@ -175,25 +172,25 @@ def sample(job):
 
         if job.sp.coarse_grain == False:
             system.system.save('init.mol2', overwrite=True)
+			cg_potentials_dir = None
 
         logging.info("System generated...")
         logging.info("Starting simulation...")
 
         simulation = simulate.Simulation(
                 system,
-                r_cut = job.sp["r_cut"],
-                tau_kt = job.sp['tau_kt'],
-		        tau_p = job.sp['tau_p'],
-                nlist = job.sp['neighbor_list'],
-                dt = job.sp['dt'],
-                seed = job.sp['sim_seed'],
-                auto_scale = auto_scale,
-                ref_values = ref_values,
-                mode = "gpu",
-                gsd_write = max([int(job.doc['steps']/100), 1]),
-                log_write = max([int(job.doc['steps']/10000), 1]),
-                bond_dicts = bond_dicts,
-                angle_dicts = angle_dicts
+                r_cut=job.sp["r_cut"],
+                tau_kt=job.sp['tau_kt'],
+		        tau_p=job.sp['tau_p'],
+                nlist=job.sp['neighbor_list'],
+                dt=job.sp['dt'],
+                seed=job.sp['sim_seed'],
+                auto_scale=auto_scale,
+                ref_values=ref_values,
+                mode="gpu",
+                gsd_write=max([int(job.doc['steps']/100), 1]),
+                log_write=max([int(job.doc['steps']/10000), 1]),
+				cg_potentials_dir=cg_potentials_dir
         )
 
         logging.info("Simulation object generated...")
@@ -201,20 +198,20 @@ def sample(job):
         job.doc['ref_distance'] = simulation.ref_distance
         job.doc['ref_mass'] = simulation.ref_mass
         job.doc['real_timestep'] = unit_conversions.convert_to_real_time(
-                                    simulation.dt,
-                                    simulation.ref_energy,
-                                    simulation.ref_distance,
-                                    simulation.ref_mass
-                            )
+				simulation.dt,
+                simulation.ref_energy,
+                simulation.ref_distance,
+                simulation.ref_mass
+        )
         job.doc['time_unit'] = 'fs'
         job.doc['steps_per_frame'] = simulation.gsd_write
         job.doc['steps_per_log'] = simulation.log_write
 
         if job.sp['procedure'] == "quench":
             job.doc['T_SI'] = unit_conversions.kelvin_from_reduced(
-                                    job.sp['kT_quench'],
-                                    simulation.ref_energy
-                            )
+                job.sp['kT_quench'],
+                simulation.ref_energy
+            )
             job.doc['T_unit'] = 'K'
             logging.info("Beginning quench simulation...")
             simulation.quench(
@@ -233,12 +230,12 @@ def sample(job):
                 kT_list = np.linspace(job.sp['kT_anneal'][0],
                                       job.sp['kT_anneal'][1],
                                       len(job.sp['anneal_sequence']),
-                                      )
+                )
                 kT_SI = [
                         unit_conversions.kelvin_from_reduced(
                             kT, simulation.ref_energy
                         ) for kT in kT_list
-                        ]
+                ]
                 job.doc['T_SI'] = kT_SI
                 job.doc['T_unit'] = 'K'
 
