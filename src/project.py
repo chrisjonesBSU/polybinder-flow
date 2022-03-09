@@ -117,7 +117,7 @@ def sample(job):
                     "mass": job.sp.ref_mass
                 }
                 auto_scale = False
-				cg_potentials_dir = job.sp.cg_potentials_dir
+                cg_potentials_dir = job.sp.cg_potentials_dir
 
             shrink_kT = job.sp['shrink_kT']
             shrink_steps = job.sp['shrink_steps']
@@ -172,7 +172,7 @@ def sample(job):
 
         if job.sp.coarse_grain == False:
             system.system.save('init.mol2', overwrite=True)
-			cg_potentials_dir = None
+            cg_potentials_dir = None
 
         logging.info("System generated...")
         logging.info("Starting simulation...")
