@@ -104,6 +104,17 @@ def sample(job):
             ref_values = None
             auto_scale = True
 
+            if job.isfile("restart.gsd"):
+                restart = job.fn("restart.gsd")
+                shrink_kT = None,
+                shrink_steps = None,
+                shrink_period = None
+            else:
+                restart = None
+                shrink_kT = job.sp['shrink_kT']
+                shrink_steps = job.sp['shrink_steps']
+                shrink_period = job.sp['shrink_period']
+
             if job.sp.coarse_grain == True:
                 system.coarse_grain_system(
                         ref_distance=job.sp.ref_distance,
@@ -119,9 +130,6 @@ def sample(job):
                 auto_scale = False
                 cg_potentials_dir = job.sp.cg_potentials_dir
 
-            shrink_kT = job.sp['shrink_kT']
-            shrink_steps = job.sp['shrink_steps']
-            shrink_period = job.sp['shrink_period']
             job.doc['num_para'] = system_parms.para
             job.doc['num_meta'] = system_parms.meta
             job.doc['num_compounds'] = system_parms.n_compounds
@@ -190,6 +198,7 @@ def sample(job):
                 mode="gpu",
                 gsd_write=max([int(job.doc['steps']/100), 1]),
                 log_write=max([int(job.doc['steps']/10000), 1]),
+                restart=restart,
 				cg_potentials_dir=cg_potentials_dir
         )
 
@@ -214,14 +223,14 @@ def sample(job):
             )
             job.doc['T_unit'] = 'K'
             logging.info("Beginning quench simulation...")
-            simulation.quench(
-                    kT = job.sp['kT_quench'],
-					pressure = job.sp['pressure'],
-                    n_steps = job.sp['n_steps'],
-                    shrink_kT = shrink_kT,
-                    shrink_steps = shrink_steps,
-                    wall_axis = job.sp['walls'],
-                    shrink_period = shrink_period
+            done = simulation.quench(
+                        kT = job.sp['kT_quench'],
+					    pressure = job.sp['pressure'],
+                        n_steps = job.sp['n_steps'],
+                        shrink_kT = shrink_kT,
+                        shrink_steps = shrink_steps,
+                        wall_axis = job.sp['walls'],
+                        shrink_period = shrink_period
             )
 
         elif job.sp['procedure'] == "anneal":
@@ -239,18 +248,18 @@ def sample(job):
                 job.doc['T_SI'] = kT_SI
                 job.doc['T_unit'] = 'K'
 
-            simulation.anneal(
-                    kT_init = job.sp['kT_anneal'][0],
-                    kT_final = job.sp['kT_anneal'][1],
-					pressure = job.sp['pressure'],
-                    step_sequence = job.sp['anneal_sequence'],
-                    schedule = job.sp['schedule'],
-                    shrink_kT = shrink_kT,
-                    shrink_steps = shrink_steps,
-                    wall_axis = job.sp['walls'],
-                    shrink_period = shrink_period
+            done = simulation.anneal(
+                        kT_init = job.sp['kT_anneal'][0],
+                        kT_final = job.sp['kT_anneal'][1],
+					    pressure = job.sp['pressure'],
+                        step_sequence = job.sp['anneal_sequence'],
+                        schedule = job.sp['schedule'],
+                        shrink_kT = shrink_kT,
+                        shrink_steps = shrink_steps,
+                        wall_axis = job.sp['walls'],
+                        shrink_period = shrink_period
             )
-        job.doc["done"] = True
+        job.doc["done"] = done
 
 if __name__ == "__main__":
     MyProject().main()
