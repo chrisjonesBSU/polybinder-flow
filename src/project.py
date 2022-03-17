@@ -69,6 +69,7 @@ def sample(job):
     import logging
 
     with job:
+        print("JOB ID NUMBER:")
         print(job.id)
         job.doc["done"] = False
         logging.info("Creating system...")
@@ -105,9 +106,10 @@ def sample(job):
             auto_scale = True
 
             if job.isfile("restart.gsd"):
+                print("Initializing simulation from a restart.gsd file")
                 restart = job.fn("restart.gsd")
-                shrink_kT = None,
-                shrink_steps = None,
+                shrink_kT = None
+                shrink_steps = None
                 shrink_period = None
             else:
                 restart = None
