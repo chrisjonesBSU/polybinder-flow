@@ -8,6 +8,7 @@ The result of running this file is the creation of a signac workspace:
     - signac_statepoints.json summary for the entire workspace
     - workspace/ directory that contains a sub-directory of every individual statepoint
     - signac_statepoints.json within each individual statepoint sub-directory.
+
 """
 
 import signac
@@ -119,21 +120,18 @@ def get_parameters():
     ### COARSE-GRAINING PARAMETERS ###
     # NOTE: If coarse-graining, double-check your r-cut value
     # relative to your coarse-grained potentials
+    # Also be sure to set the focefield parameter to None
     parameters["coarse_grain"] = [False]
     """
     parameters["ref_distance"] = [3.3997] # Angstrom
     parameters["ref_mass"] = [15.99] # AMU
     parameters["ref_energy"] = [0.21] # kJ/mol
-    parameters["bond_dict"] = [
-            [{"type1": "E", "type2": "K", "k": 500, "r0": 1.53},
-            {"type1": "K", "type2": "K", "k": 500, "r0": 1.56}]
-    ]
-    parameters["angle_dict"] = [
-            [{"type1":"E", "type2":"K", "type3":"K", "k":50, "theta0":2.4},
-             {"type1":"K", "type2":"E", "type3":"K", "k":50, "theta0":2.6}]
-    ]
+    # Location in polybinder.library.forcefields to look for CG specific table
+    # Leave as None if the table potentials are in polybinder.library.forcefields
+    parameters["cg_potentials_dir"] = [None]
     parameters["bead_mapping"] = ["ring_plus_linkage_UA"]
     """
+
     ### SIMULATION PARAMETERS ###
     parameters["tau_kt"] = [0.1]
     parameters["tau_p"] = [None]
