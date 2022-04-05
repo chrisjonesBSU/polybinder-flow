@@ -116,6 +116,18 @@ def get_parameters():
 			{},
            #{"n": 4, "a": 1.5, "b": 1.5}
 	]
+    
+    ### SIM FROM RESTART PARAMETERS ###
+
+	# Path to the signac project to use
+    parameters["signac_project"] = [
+            "/home/erjank_project/chrisjones/tensile/make_slabs"
+        ] 
+	# A way for signac to find the specific state point to use
+	# Can be a job ID or a dictionary of a state point
+    parameters["signac_args"] = [["457240ab30858158b22ffceeda4bc813"] 
+	# Give the full path to the restart.gsd file instead of using signac
+    parameters["restart_file"] = [None] 
 
     ### COARSE-GRAINING PARAMETERS ###
     # NOTE: If coarse-graining, double-check your r-cut value

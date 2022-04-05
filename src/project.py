@@ -57,6 +57,19 @@ def initialized(job):
     else:
         return job.isfile("atomistic_gsd.gsd")
 
+def get_gsd_file(job):
+    if job.sp.signac_project and job.sp.signac_args:
+        project = signac.get_project(
+            root=job.sp['signac_project'], search=True
+        )
+        if isinstance(job.sp.signac_args, dict):
+            _job = list(project.find_jobs(filter=job.sp.signac_args))[0]
+        elif isinstance(job.sp.signac_args, str): # Find job using job ID
+            _job = project.open_job(id=job.sp.signac_args)
+        restart_file = _job.fn('restart.gsd')
+    elif job.sp.slab_file:
+        restart_file = job.sp.restart_file
+    return restart_file
 
 @directives(executable="python -u")
 @directives(ngpu=1)
@@ -109,8 +122,17 @@ def sample(job):
                 print("Initializing simulation from a restart.gsd file")
                 restart = job.fn("restart.gsd")
                 shrink_kT = None
-                shrink_steps = None
+                shrink_steps = 0 
                 shrink_period = None
+            elif any([
+                    all(job.sp.signac_project, job.sp.signac_args),
+                    job.sp.restart_file
+                ]
+            ):
+                restart = get_gsd_file(job)
+                shrink_kT = None
+                shrink_steps = 0
+                shrink_period=None
             else:
                 restart = None
                 shrink_kT = job.sp['shrink_kT']
