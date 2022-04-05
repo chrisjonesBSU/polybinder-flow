@@ -125,7 +125,7 @@ def sample(job):
                 shrink_steps = 0 
                 shrink_period = None
             elif any([
-                    all(job.sp.signac_project, job.sp.signac_args),
+                    all([job.sp.signac_project, job.sp.signac_args]),
                     job.sp.restart_file
                 ]
             ):
