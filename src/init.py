@@ -120,12 +120,10 @@ def get_parameters():
     ### SIM FROM RESTART PARAMETERS ###
 
 	# Path to the signac project to use
-    parameters["signac_project"] = [
-            "/home/erjank_project/chrisjones/tensile/make_slabs"
-        ] 
+    parameters["signac_project"] = [None ] 
 	# A way for signac to find the specific state point to use
 	# Can be a job ID or a dictionary of a state point
-    parameters["signac_args"] = [["457240ab30858158b22ffceeda4bc813"] 
+    parameters["signac_args"] = [None] 
 	# Give the full path to the restart.gsd file instead of using signac
     parameters["restart_file"] = [None] 
 
