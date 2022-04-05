@@ -69,7 +69,7 @@ def get_gsd_file(job):
         restart_file = _job.fn('restart.gsd')
     elif job.sp.slab_file:
         restart_file = job.sp.restart_file
-    return restart_file
+    return restart_file, _job.sp.n_steps
 
 @directives(executable="python -u")
 @directives(ngpu=1)
@@ -121,20 +121,23 @@ def sample(job):
             if job.isfile("restart.gsd"):
                 print("Initializing simulation from a restart.gsd file")
                 restart = job.fn("restart.gsd")
+                n_steps = job.sp.n_steps
                 shrink_kT = None
-                shrink_steps = 0 
+                shrink_steps = None 
                 shrink_period = None
             elif any([
                     all([job.sp.signac_project, job.sp.signac_args]),
                     job.sp.restart_file
                 ]
             ):
-                restart = get_gsd_file(job)
+                restart, last_n_steps = get_gsd_file(job)
+                n_steps = last_n_steps + job.sp.n_steps
                 shrink_kT = None
-                shrink_steps = 0
+                shrink_steps =None 
                 shrink_period=None
             else:
                 restart = None
+                n_steps = job.sp.n_steps
                 shrink_kT = job.sp['shrink_kT']
                 shrink_steps = job.sp['shrink_steps']
                 shrink_period = job.sp['shrink_period']
@@ -153,6 +156,7 @@ def sample(job):
                 }
                 auto_scale = False
                 cg_potentials_dir = job.sp.cg_potentials_dir
+                n_steps = job.sp.n_steps
 
             job.doc['num_para'] = system_parms.para
             job.doc['num_meta'] = system_parms.meta
