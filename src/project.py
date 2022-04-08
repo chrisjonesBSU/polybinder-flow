@@ -130,8 +130,10 @@ def sample(job):
                     job.sp.restart_file
                 ]
             ):
+                print("Initializing simulation from a restart.gsd file")
                 restart, last_n_steps = get_gsd_file(job)
-                n_steps = last_n_steps + job.sp.n_steps
+                print(f"Initializing from {restart}")
+                n_steps = last_n_steps + job.doc.steps
                 shrink_kT = None
                 shrink_steps = None
                 shrink_period = None
@@ -262,6 +264,13 @@ def sample(job):
             )
 
         elif job.sp['procedure'] == "anneal":
+            if restart is not None:
+                step_sequence = [
+                        i + last_n_steps for i in job.sp.anneal_sequence
+                ]
+            else:
+                step_sequence = job.sp.anneal_sequence
+
             logging.info("Beginning anneal simulation...")
             if not job.sp['schedule']:
                 kT_list = np.linspace(job.sp['kT_anneal'][0],
@@ -280,7 +289,7 @@ def sample(job):
                         kT_init = job.sp['kT_anneal'][0],
                         kT_final = job.sp['kT_anneal'][1],
 					    pressure = job.sp['pressure'],
-                        step_sequence = job.sp['anneal_sequence'],
+                        step_sequence = step_sequence,
                         schedule = job.sp['schedule'],
                         shrink_kT = shrink_kT,
                         shrink_steps = shrink_steps,
