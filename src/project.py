@@ -69,7 +69,7 @@ def get_gsd_file(job):
         restart_file = _job.fn('restart.gsd')
     elif job.sp.slab_file:
         restart_file = job.sp.restart_file
-    return restart_file, _job.sp.n_steps
+    return restart_file, _job.doc.steps
 
 @directives(executable="python -u")
 @directives(ngpu=1)
@@ -123,7 +123,7 @@ def sample(job):
                 restart = job.fn("restart.gsd")
                 n_steps = job.sp.n_steps
                 shrink_kT = None
-                shrink_steps = None 
+                shrink_steps = None
                 shrink_period = None
             elif any([
                     all([job.sp.signac_project, job.sp.signac_args]),
@@ -133,8 +133,8 @@ def sample(job):
                 restart, last_n_steps = get_gsd_file(job)
                 n_steps = last_n_steps + job.sp.n_steps
                 shrink_kT = None
-                shrink_steps =None 
-                shrink_period=None
+                shrink_steps = None
+                shrink_period = None
             else:
                 restart = None
                 n_steps = job.sp.n_steps
