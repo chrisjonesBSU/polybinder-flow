@@ -59,11 +59,21 @@ def initialized(job):
 
 def get_gsd_file(job):
     if job.sp.signac_project and job.sp.signac_args:
+        print("Restarting job from signac project")
         project = signac.get_project(
-            root=job.sp['signac_project'], search=True
+            root=job.sp['signac_project'], search=False
         )
-        if isinstance(job.sp.signac_args, dict):
+        print("Found project:")
+        print(project)
+        if isinstance(job.sp.signac_args, signac.core.attrdict.SyncedAttrDict):
+            print("-------------------------------")
+            print("Restart job filter used:")
+            print(job.sp.signac_args)
             _job = list(project.find_jobs(filter=job.sp.signac_args))[0]
+            print("Found restart job:")
+            print(_job.id)
+            print(_job.sp)
+            print("-------------------------------")
         elif isinstance(job.sp.signac_args, str): # Find job using job ID
             _job = project.open_job(id=job.sp.signac_args)
         restart_file = _job.fn('restart.gsd')
