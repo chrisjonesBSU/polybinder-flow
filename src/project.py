@@ -8,7 +8,6 @@ status, execute operations and submit them to a cluster. See also:
 import signac
 from flow import FlowProject, directives
 from flow.environment import DefaultSlurmEnvironment
-from flow.environments.xsede import BridgesEnvironment, CometEnvironment
 import os
 
 class MyProject(FlowProject):
@@ -134,7 +133,7 @@ def sample(job):
                 n_steps = job.sp.n_steps
                 init_shrink_kT = None
                 final_shrink_kT = None
-                shrink_steps = 0 
+                shrink_steps = 0
                 shrink_period = None
             elif any([
                     all([job.sp.signac_project, job.sp.signac_args]),
@@ -147,7 +146,7 @@ def sample(job):
                 n_steps = last_n_steps + job.doc.steps
                 init_shrink_kT = None
                 final_shrink_kT = None
-                shrink_steps = 0 
+                shrink_steps = 0
                 shrink_period = None
             else:
                 restart = None
@@ -219,7 +218,7 @@ def sample(job):
             job.doc['slab_ref_distances'] = system.ref_distance
             init_shrink_kT = None
             final_shrink_kT = None
-            shrink_steps = 0 
+            shrink_steps = 0
             shrink_period = None
 
         if job.sp.coarse_grain == False:
