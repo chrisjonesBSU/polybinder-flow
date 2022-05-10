@@ -132,8 +132,9 @@ def sample(job):
                 print("Initializing simulation from a restart.gsd file")
                 restart = job.fn("restart.gsd")
                 n_steps = job.sp.n_steps
-                shrink_kT = None
-                shrink_steps = None
+                init_shrink_kT = None
+                final_shrink_kT = None
+                shrink_steps = 0 
                 shrink_period = None
             elif any([
                     all([job.sp.signac_project, job.sp.signac_args]),
@@ -144,13 +145,15 @@ def sample(job):
                 restart, last_n_steps = get_gsd_file(job)
                 print(f"Initializing from {restart}")
                 n_steps = last_n_steps + job.doc.steps
-                shrink_kT = None
-                shrink_steps = None
+                init_shrink_kT = None
+                final_shrink_kT = None
+                shrink_steps = 0 
                 shrink_period = None
             else:
                 restart = None
                 n_steps = job.sp.n_steps
-                shrink_kT = job.sp['shrink_kT']
+                init_shrink_kT = job.sp['init_shrink_kT']
+                final_shrink_kT = job.sp['final_shrink_kT']
                 shrink_steps = job.sp['shrink_steps']
                 shrink_period = job.sp['shrink_period']
 
@@ -214,8 +217,9 @@ def sample(job):
             )
 
             job.doc['slab_ref_distances'] = system.ref_distance
-            shrink_kT = None
-            shrink_steps = None
+            init_shrink_kT = None
+            final_shrink_kT = None
+            shrink_steps = 0 
             shrink_period = None
 
         if job.sp.coarse_grain == False:
@@ -267,7 +271,8 @@ def sample(job):
                         kT = job.sp['kT_quench'],
 					    pressure = job.sp['pressure'],
                         n_steps = job.sp['n_steps'],
-                        shrink_kT = shrink_kT,
+                        init_shrink_kT = init_shrink_kT,
+                        final_shrink_kT = final_shrink_kT,
                         shrink_steps = shrink_steps,
                         wall_axis = job.sp['walls'],
                         shrink_period = shrink_period
@@ -301,7 +306,8 @@ def sample(job):
 					    pressure = job.sp['pressure'],
                         step_sequence = step_sequence,
                         schedule = job.sp['schedule'],
-                        shrink_kT = shrink_kT,
+                        init_shrink_kT = init_shrink_kT,
+                        final_shrink_kT = final_shrink_kT,
                         shrink_steps = shrink_steps,
                         wall_axis = job.sp['walls'],
                         shrink_period = shrink_period
