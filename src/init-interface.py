@@ -23,48 +23,7 @@ def get_parameters():
 
     System generation parameters:
     -----------------------------
-    molecule : str
-        Name of the molecule used to build the system.
-        Must match one of the json files in uli-init/compounds
-    para_weight : float; between 0 and 1
-        The relative amount of para conformations in the system
-        1 = All para, 0 = All meta
-    density : float
-        The density of the system in g/cm^3.
-        PEEK and PEKK are both around 1.3 - 1.4 g/cm^3
-    n_compounds : list
-        A list of the number of molecules of a given length
-        Must be the same legnth as polymer_lengths list(s)
-        Corresponds to the number of specific molecules
-        at the same index position in polymer_lengths
-        See pdi parameter
-    polymer_lengths : list
-        A list of the number of monomer units in a single molecule
-        Must be the same legnth as n_compounds list(s)
-        See pdi parameter
-    sample_pdi : bool
-        Instruct uli-init to generate a distribution using a combination
-        of pdi, Mn, Mw. This will override n_compound and polymer_length
-        parameters
-    pdi : float
-        A PDI (poly-dispersity index) value of the generated system.
-        pdi = Mn/Mw
-    Mn : int
-        The most frequent polymer length of a polydisperse system
-        Used in conjunction with pdi to determine distribution
-        of polymer lengths in the system
-    Mw : int
-        The weight average of the polymer distribution.
-    forcefield : str options are 'gaff' or 'opls'
-        The forcefield type to use when calling Foyer
-    mass_dist : str
-        Specify the distribution to be used when sampling from a pdi
-        Options are: 'weibull' or 'gaussian'
-    walls : bool
-        If set to True, then hoomd will set LJ wall potentials on both
-        sides of the volume along the x-axis.
-        This should be True if you want to produce a trajectory with a flat
-        surface.
+
 
     Simulation parameters:
     ----------------------

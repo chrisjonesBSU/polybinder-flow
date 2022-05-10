@@ -57,6 +57,29 @@ def initialized(job):
     else:
         return job.isfile("atomistic_gsd.gsd")
 
+def get_gsd_file(job):
+    if job.sp.signac_project and job.sp.signac_args:
+        print("Restarting job from signac project")
+        project = signac.get_project(
+            root=job.sp['signac_project'], search=False
+        )
+        print("Found project:")
+        print(project)
+        if isinstance(job.sp.signac_args, signac.core.attrdict.SyncedAttrDict):
+            print("-------------------------------")
+            print("Restart job filter used:")
+            print(job.sp.signac_args)
+            _job = list(project.find_jobs(filter=job.sp.signac_args))[0]
+            print("Found restart job:")
+            print(_job.id)
+            print(_job.sp)
+            print("-------------------------------")
+        elif isinstance(job.sp.signac_args, str): # Find job using job ID
+            _job = project.open_job(id=job.sp.signac_args)
+        restart_file = _job.fn('restart.gsd')
+    elif job.sp.slab_file:
+        restart_file = job.sp.restart_file
+    return restart_file, _job.doc.steps
 
 @directives(executable="python -u")
 @directives(ngpu=1)
@@ -108,12 +131,29 @@ def sample(job):
             if job.isfile("restart.gsd"):
                 print("Initializing simulation from a restart.gsd file")
                 restart = job.fn("restart.gsd")
-                shrink_kT = None
-                shrink_steps = None
+                n_steps = job.sp.n_steps
+                init_shrink_kT = None
+                final_shrink_kT = None
+                shrink_steps = 0 
+                shrink_period = None
+            elif any([
+                    all([job.sp.signac_project, job.sp.signac_args]),
+                    job.sp.restart_file
+                ]
+            ):
+                print("Initializing simulation from a restart.gsd file")
+                restart, last_n_steps = get_gsd_file(job)
+                print(f"Initializing from {restart}")
+                n_steps = last_n_steps + job.doc.steps
+                init_shrink_kT = None
+                final_shrink_kT = None
+                shrink_steps = 0 
                 shrink_period = None
             else:
                 restart = None
-                shrink_kT = job.sp['shrink_kT']
+                n_steps = job.sp.n_steps
+                init_shrink_kT = job.sp['init_shrink_kT']
+                final_shrink_kT = job.sp['final_shrink_kT']
                 shrink_steps = job.sp['shrink_steps']
                 shrink_period = job.sp['shrink_period']
 
@@ -131,6 +171,7 @@ def sample(job):
                 }
                 auto_scale = False
                 cg_potentials_dir = job.sp.cg_potentials_dir
+                n_steps = job.sp.n_steps
 
             job.doc['num_para'] = system_parms.para
             job.doc['num_meta'] = system_parms.meta
@@ -176,8 +217,9 @@ def sample(job):
             )
 
             job.doc['slab_ref_distances'] = system.ref_distance
-            shrink_kT = None
-            shrink_steps = None
+            init_shrink_kT = None
+            final_shrink_kT = None
+            shrink_steps = 0 
             shrink_period = None
 
         if job.sp.coarse_grain == False:
@@ -229,13 +271,21 @@ def sample(job):
                         kT = job.sp['kT_quench'],
 					    pressure = job.sp['pressure'],
                         n_steps = job.sp['n_steps'],
-                        shrink_kT = shrink_kT,
+                        init_shrink_kT = init_shrink_kT,
+                        final_shrink_kT = final_shrink_kT,
                         shrink_steps = shrink_steps,
                         wall_axis = job.sp['walls'],
                         shrink_period = shrink_period
             )
 
         elif job.sp['procedure'] == "anneal":
+            if restart is not None:
+                step_sequence = [
+                        i + last_n_steps for i in job.sp.anneal_sequence
+                ]
+            else:
+                step_sequence = job.sp.anneal_sequence
+
             logging.info("Beginning anneal simulation...")
             if not job.sp['schedule']:
                 kT_list = np.linspace(job.sp['kT_anneal'][0],
@@ -254,9 +304,10 @@ def sample(job):
                         kT_init = job.sp['kT_anneal'][0],
                         kT_final = job.sp['kT_anneal'][1],
 					    pressure = job.sp['pressure'],
-                        step_sequence = job.sp['anneal_sequence'],
+                        step_sequence = step_sequence,
                         schedule = job.sp['schedule'],
-                        shrink_kT = shrink_kT,
+                        init_shrink_kT = init_shrink_kT,
+                        final_shrink_kT = final_shrink_kT,
                         shrink_steps = shrink_steps,
                         wall_axis = job.sp['walls'],
                         shrink_period = shrink_period
