@@ -152,7 +152,8 @@ def get_parameters():
     parameters["sim_seed"] = [42]
     parameters["neighbor_list"] = ["cell"]
     parameters["walls"] = [None]
-    parameters["shrink_kT"] = [10]
+    parameters["init_shrink_kT"] = [7]
+    parameters["final_shrink_kT"] = [5]
     parameters["shrink_steps"] = [1e6]
     parameters["shrink_period"] = [1]
     parameters["procedure"] = [
