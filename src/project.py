@@ -88,13 +88,12 @@ def sample(job):
     from polybinder import simulate, system
     from polybinder.utils import base_units, unit_conversions
     import numpy as np
-    import logging
 
     with job:
         print("JOB ID NUMBER:")
         print(job.id)
         job.doc["done"] = False
-        logging.info("Creating system...")
+        print("Creating the system...")
         if job.sp["system_type"] != "interface":
             system_parms = system.System(
                     density = job.sp['density'],
@@ -179,6 +178,7 @@ def sample(job):
             job.doc["chain_sequences"] = system_parms.molecule_sequences
 
         elif job.sp["system_type"] == "interface":
+            print("Creating the interface...")
             slab_files = []
             ref_distances = []
             if job.doc['use_signac']is True:
@@ -225,8 +225,8 @@ def sample(job):
             system.system.save('init.mol2', overwrite=True)
             cg_potentials_dir = None
 
-        logging.info("System generated...")
-        logging.info("Starting simulation...")
+        print("System generated...")
+        print("Starting simulation...")
 
         simulation = simulate.Simulation(
                 system,
@@ -245,7 +245,7 @@ def sample(job):
 				cg_potentials_dir=cg_potentials_dir
         )
 
-        logging.info("Simulation object generated...")
+        print("Simulation object generated...")
         job.doc['ref_energy'] = simulation.ref_energy
         job.doc['ref_distance'] = simulation.ref_distance
         job.doc['ref_mass'] = simulation.ref_mass
@@ -265,7 +265,7 @@ def sample(job):
                 simulation.ref_energy
             )
             job.doc['T_unit'] = 'K'
-            logging.info("Beginning quench simulation...")
+            print("Beginning quench simulation...")
             done = simulation.quench(
                         kT = job.sp['kT_quench'],
 					    pressure = job.sp['pressure'],
@@ -278,6 +278,7 @@ def sample(job):
             )
 
         elif job.sp['procedure'] == "anneal":
+            print("Beginning anneal simulation...")
             if restart is not None:
                 step_sequence = [
                         i + last_n_steps for i in job.sp.anneal_sequence
@@ -285,7 +286,6 @@ def sample(job):
             else:
                 step_sequence = job.sp.anneal_sequence
 
-            logging.info("Beginning anneal simulation...")
             if not job.sp['schedule']:
                 kT_list = np.linspace(job.sp['kT_anneal'][0],
                                       job.sp['kT_anneal'][1],
@@ -312,6 +312,7 @@ def sample(job):
                         shrink_period = shrink_period
             )
         job.doc["done"] = done
+        print("Simulation finished")
 
 if __name__ == "__main__":
     MyProject().main()
