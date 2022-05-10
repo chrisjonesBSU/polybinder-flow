@@ -99,9 +99,9 @@ def get_parameters():
     ]
     parameters["para_weight"] = [None]
     parameters["monomer_sequence"] = ["P"]
-    parameters["density"] = [1.3]
-    parameters["n_compounds"] = [[1000]]
-    parameters["polymer_lengths"] = [[30]]
+    parameters["density"] = [1.0]
+    parameters["n_compounds"] = [10]
+    parameters["polymer_lengths"] = [10]
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
@@ -116,16 +116,16 @@ def get_parameters():
 			{},
            #{"n": 4, "a": 1.5, "b": 1.5}
 	]
-    
+
     ### SIM FROM RESTART PARAMETERS ###
 
 	# Path to the signac project to use
-    parameters["signac_project"] = [None ] 
+    parameters["signac_project"] = [None ]
 	# A way for signac to find the specific state point to use
 	# Can be a job ID or a dictionary of a state point
-    parameters["signac_args"] = [None] 
+    parameters["signac_args"] = [None]
 	# Give the full path to the restart.gsd file instead of using signac
-    parameters["restart_file"] = [None] 
+    parameters["restart_file"] = [None]
 
     ### COARSE-GRAINING PARAMETERS ###
     # NOTE: If coarse-graining, double-check your r-cut value
@@ -150,7 +150,7 @@ def get_parameters():
     parameters["r_cut"] = [2.5]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
-    parameters["neighbor_list"] = ["cell"]
+    parameters["neighbor_list"] = ["Cell"]
     parameters["walls"] = [None]
     parameters["init_shrink_kT"] = [7]
     parameters["final_shrink_kT"] = [5]
@@ -162,7 +162,7 @@ def get_parameters():
         ]
 
     ### Quench related parameters ###
-    parameters["kT_quench"] = [5.5]
+    parameters["kT_quench"] = [5]
     parameters["n_steps"] = [1e6]
 
     ### Anneal related parameters ###
@@ -186,7 +186,7 @@ def get_parameters():
                 )
     return list(parameters.keys()), list(product(*parameters.values()))
 
-custom_job_doc = {} # add keys and values to be added to each job document created
+custom_job_doc = {} # add keys and values for each job document created
 
 def main():
     project = signac.init_project("project") # Set the signac project name
@@ -197,11 +197,19 @@ def main():
         parent_job = project.open_job(parent_statepoint)
         parent_job.init()
         try:
-            parent_job.doc.setdefault("steps", parent_statepoint["n_steps"])
+            parent_job.doc.setdefault("steps", int(
+                parent_statepoint["n_steps"])
+            )
         except KeyError:
-            parent_job.doc.setdefault("steps", sum(parent_statepoint["anneal_sequence"]))
-            parent_job.doc.setdefault("step_sequence", parent_statepoint["anneal_sequence"])
-        if any([parent_job.sp['Mn'], parent_job.sp['pdi'], parent_job.sp['Mw']]):
+            parent_job.doc.setdefault("steps", int(
+                sum(parent_statepoint["anneal_sequence"]))
+            )
+            parent_job.doc.setdefault(
+                    "step_sequence", parent_statepoint["anneal_sequence"]
+            )
+        if any(
+            [parent_job.sp['Mn'], parent_job.sp['pdi'], parent_job.sp['Mw']]
+        ):
             parent_job.doc.setdefault("sample_pdi", True)
         else:
             parent_job.doc.setdefault("sample_pdi", False)
