@@ -16,6 +16,7 @@ import logging
 from collections import OrderedDict
 from itertools import product
 
+
 def get_parameters():
     '''
     Parameters:
@@ -60,11 +61,12 @@ def get_parameters():
     mass_dist : str
         Specify the distribution to be used when sampling from a pdi
         Options are: 'weibull' or 'gaussian'
-    walls : bool
-        If set to True, then hoomd will set LJ wall potentials on both
-        sides of the volume along the x-axis.
-        This should be True if you want to produce a trajectory with a flat
-        surface.
+    walls : np.array like
+        Use walls to create flat surfaces along one of the volume axes
+        Walls on x-axis: [1,0,0]
+        Walls on y-axis: [0,1,0]
+        Walls on z-axis: [0,0,1]
+        Leaving as None will result in PBC across all volume faces
 
     Simulation parameters:
     ----------------------
@@ -86,6 +88,7 @@ def get_parameters():
         Comment out kT_quench and n_steps lines
 
     Don't forget to change the name of the project
+
     '''
     parameters = OrderedDict()
 
@@ -95,13 +98,14 @@ def get_parameters():
     ]
     parameters["molecule"] = [
             #'PEEK',
-            'PEKK'
+            #'PEKK',
+            "PPS"
     ]
-    parameters["para_weight"] = [None]
-    parameters["monomer_sequence"] = ["P"]
-    parameters["density"] = [1.0]
-    parameters["n_compounds"] = [10]
-    parameters["polymer_lengths"] = [10]
+    parameters["para_weight"] = [1.0]
+    parameters["monomer_sequence"] = [None]
+    parameters["density"] = [1.35, 1.5, 1.8]
+    parameters["n_compounds"] = [25]
+    parameters["polymer_lengths"] = [30]
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
@@ -113,7 +117,7 @@ def get_parameters():
             {"x": None, "y": None, "z": None}
 	]
     parameters["kwargs"] = [
-			{},
+            {"expand_factor": 10},
            #{"n": 4, "a": 1.5, "b": 1.5}
 	]
 
@@ -146,14 +150,14 @@ def get_parameters():
     parameters["tau_kt"] = [0.1]
     parameters["tau_p"] = [None]
     parameters["pressure"] = [None]
-    parameters["dt"] = [0.001]
+    parameters["dt"] = [0.0003]
     parameters["r_cut"] = [2.5]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
     parameters["neighbor_list"] = ["Cell"]
     parameters["walls"] = [None]
     parameters["init_shrink_kT"] = [7]
-    parameters["final_shrink_kT"] = [5]
+    parameters["final_shrink_kT"] = [7]
     parameters["shrink_steps"] = [1e6]
     parameters["shrink_period"] = [1]
     parameters["procedure"] = [
@@ -162,8 +166,8 @@ def get_parameters():
         ]
 
     ### Quench related parameters ###
-    parameters["kT_quench"] = [5]
-    parameters["n_steps"] = [1e6]
+    parameters["kT_quench"] = [7]
+    parameters["n_steps"] = [2e5]
 
     ### Anneal related parameters ###
     # List of [initial kT, final kT] Reduced Temps
@@ -188,6 +192,7 @@ def get_parameters():
 
 custom_job_doc = {} # add keys and values for each job document created
 
+
 def main():
     project = signac.init_project("project") # Set the signac project name
     param_names, param_combinations = get_parameters()
@@ -196,13 +201,14 @@ def main():
         parent_statepoint = dict(zip(param_names, params))
         parent_job = project.open_job(parent_statepoint)
         parent_job.init()
+        parent_job.doc.setdefault("done", False)
         try:
-            parent_job.doc.setdefault("steps", int(
-                parent_statepoint["n_steps"])
+            parent_job.doc.setdefault(
+                    "steps", int(parent_statepoint["n_steps"])
             )
         except KeyError:
-            parent_job.doc.setdefault("steps", int(
-                sum(parent_statepoint["anneal_sequence"]))
+            parent_job.doc.setdefault(
+                    "steps", int(sum(parent_statepoint["anneal_sequence"]))
             )
             parent_job.doc.setdefault(
                     "step_sequence", parent_statepoint["anneal_sequence"]
