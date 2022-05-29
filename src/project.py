@@ -220,7 +220,7 @@ def sample(job):
             print("-------------------------")
             slab_files = []
             ref_distances = []
-            if job.doc.use_signac is True:
+            if job.doc.use_signac:
                 signac_args = []
                 if isinstance(job.sp.signac_args, list):
                     slab_1_arg = job.sp.signac_args[0]
@@ -233,7 +233,7 @@ def sample(job):
 
                 project = signac.get_project(
                         root=job.sp.signac_project, search=True
-                    )
+                )
                 for arg in signac_args:
                     if isinstance(arg, dict):
                         _job = list(project.find_jobs(filter=arg))[0]
@@ -243,7 +243,7 @@ def sample(job):
                         _job = project.open_job(id=arg)
                         slab_files.append(_job.fn('restart.gsd'))
                         ref_distances.append(_job.doc['ref_distance']/10)
-            elif job.doc.use_signac is False:
+            else:
                 slab_files.append(job.sp.slab_file)
                 ref_distances.append(job.sp.reference_distance)
 
@@ -369,11 +369,11 @@ def sample(job):
                 job.doc['T_unit'] = 'K'
 
             simulation.anneal(
-                kT_init = job.sp.kT_anneal[0],
-                kT_final = job.sp.kT_anneal[1],
-                pressure = job.sp.pressure,
-                step_sequence = step_sequence,
-                schedule = job.sp.schedule,
+                kT_init=job.sp.kT_anneal[0],
+                kT_final=job.sp.kT_anneal[1],
+                pressure=job.sp.pressure,
+                step_sequence=step_sequence,
+                schedule=job.sp.schedule,
             )
             print("-----------------------------")
             print("Anneal simulation finished...")
@@ -391,6 +391,7 @@ def sample(job):
             print("Simulation finished uncompleted")
             print("Final timestep: {job.doc.final_timestep}")
             print("-------------------------------")
+
 
 if __name__ == "__main__":
     MyProject().main()
