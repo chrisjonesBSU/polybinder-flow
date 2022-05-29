@@ -10,8 +10,10 @@ from flow import FlowProject, directives
 from flow.environment import DefaultSlurmEnvironment
 import os
 
+
 class MyProject(FlowProject):
     pass
+
 
 class Borah(DefaultSlurmEnvironment):
     hostname_pattern = "borah"
@@ -20,8 +22,11 @@ class Borah(DefaultSlurmEnvironment):
     @classmethod
     def add_args(cls, parser):
         parser.add_argument(
-            "--partition", default="gpu", help="Specify the partition to submit to."
+            "--partition",
+            default="gpu",
+            help="Specify the partition to submit to."
         )
+
 
 class R2(DefaultSlurmEnvironment):
     hostname_pattern = "r2"
@@ -30,8 +35,11 @@ class R2(DefaultSlurmEnvironment):
     @classmethod
     def add_args(cls, parser):
         parser.add_argument(
-            "--partition", default="gpuq", help="Specify the partition to submit to."
+            "--partition",
+            default="gpuq",
+            help="Specify the partition to submit to."
         )
+
 
 class Fry(DefaultSlurmEnvironment):
     hostname_pattern = "fry"
@@ -40,7 +48,9 @@ class Fry(DefaultSlurmEnvironment):
     @classmethod
     def add_args(cls, parser):
         parser.add_argument(
-            "--partition", default="batch", help="Specify the partition to submit to."
+            "--partition",
+            default="batch",
+            help="Specify the partition to submit to."
         )
 
 # Definition of project-related labels (classification)
@@ -56,11 +66,12 @@ def initialized(job):
     else:
         return job.isfile("atomistic_gsd.gsd")
 
+
 def get_gsd_file(job):
     if job.sp.signac_project and job.sp.signac_args:
-        print("Restarting job from signac project")
+        print("Restarting job from another signac workspace")
         project = signac.get_project(
-            root=job.sp['signac_project'], search=False
+            root=job.sp.signac_project, search=False
         )
         print("Found project:")
         print(project)
@@ -68,17 +79,33 @@ def get_gsd_file(job):
             print("-------------------------------")
             print("Restart job filter used:")
             print(job.sp.signac_args)
-            _job = list(project.find_jobs(filter=job.sp.signac_args))[0]
+            print("-------------------------------")
+            job_lookup = list(project.find_jobs(filter=job.sp.signac_args))
+            if len(job_lookup) > 1:
+                print([j.id for j in job_lookup])
+                raise ValueError(
+                        "The signac filter provied returned more than "
+                        "1 job."
+                )
+            if len(job_lookup) < 1:
+                raise ValueError(
+                        "The signac filter provided found zero jobs."
+                )
+            _job = job_lookup[0]
+            print("-------------------------------")
             print("Found restart job:")
             print(_job.id)
             print(_job.sp)
             print("-------------------------------")
         elif isinstance(job.sp.signac_args, str): # Find job using job ID
+            print("Restart job found by job ID:")
             _job = project.open_job(id=job.sp.signac_args)
+            print(f"Job ID: {_job.id}")
         restart_file = _job.fn('restart.gsd')
     elif job.sp.slab_file:
         restart_file = job.sp.restart_file
-    return restart_file, _job.doc.steps
+    return restart_file, _job.doc.final_timestep
+
 
 @directives(executable="python -u")
 @directives(ngpu=1)
@@ -90,56 +117,63 @@ def sample(job):
     import numpy as np
 
     with job:
+        print("-----------------------")
         print("JOB ID NUMBER:")
         print(job.id)
-        job.doc["done"] = False
+        print("-----------------------")
+        print("----------------------")
         print("Creating the system...")
-        if job.sp["system_type"] != "interface":
+        print("----------------------")
+        if job.sp.system_type != "interface":
             system_parms = system.System(
-                    density = job.sp['density'],
-                    molecule = job.sp['molecule'],
-                    n_compounds = job.sp['n_compounds'],
-                    polymer_lengths = job.sp["polymer_lengths"],
-                    para_weight = job.sp['para_weight'],
-                    monomer_sequence = job.sp['monomer_sequence'],
-                    sample_pdi = job.doc.sample_pdi,
-                    pdi = job.sp['pdi'],
-                    Mn = job.sp['Mn'],
-                    Mw = job.sp['Mw'],
-                    seed = job.sp['system_seed']
-                )
-            system = system.Initializer(
-                    system = system_parms,
-                    system_type = job.sp["system_type"],
-                    forcefield = job.sp["forcefield"],
-                    remove_hydrogens = job.sp["remove_hydrogens"],
-					**job.sp["kwargs"]
+                    density=job.sp.density,
+                    molecule=job.sp.molecule,
+                    n_compounds=job.sp.n_compounds,
+                    polymer_lengths=job.sp.polymer_lengths,
+                    para_weight=job.sp.para_weight,
+                    monomer_sequence=job.sp.monomer_sequence,
+                    sample_pdi=job.doc.sample_pdi,
+                    pdi=job.sp.pdi,
+                    Mn=job.sp.Mn,
+                    Mw=job.sp.Mw,
+                    seed=job.sp.system_seed
             )
-            if any(list(job.sp["box_constraints"].values())):
+            system = system.Initializer(
+                    system=system_parms,
+                    system_type=job.sp.system_type,
+                    forcefield=job.sp.forcefield,
+                    remove_hydrogens=job.sp.remove_hydrogens,
+					**job.sp.kwargs
+            )
+
+            if any(list(job.sp.box_constraints.values())):
                 system.target_box = system.set_target_box(
-                        job.sp["box_constraints"]["x"],
-                        job.sp["box_constraints"]["y"],
-                        job.sp["box_constraints"]["z"]
+                        job.sp.box_constraints["x"],
+                        job.sp.box_constraints["y"],
+                        job.sp.box_constraints["z"]
                 )
             job.doc["target_volume"] = system.target_box
-
             ref_values = None
             auto_scale = True
 
-            if job.isfile("restart.gsd"):
-                print("Initializing simulation from a restart.gsd file")
+            if job.isfile("restart.gsd"): # Restarting from same workspace
+                print("--------------------------------------------------")
+                print("Initializing simulation from a restart.gsd file...")
+                print("--------------------------------------------------")
                 restart = job.fn("restart.gsd")
                 n_steps = job.sp.n_steps
                 init_shrink_kT = None
                 final_shrink_kT = None
                 shrink_steps = 0
                 shrink_period = None
-            elif any([
+            elif any([                  # Restarting from another workspace
                     all([job.sp.signac_project, job.sp.signac_args]),
                     job.sp.restart_file
                 ]
             ):
-                print("Initializing simulation from a restart.gsd file")
+                print("--------------------------------------------------")
+                print("Initializing simulation from a restart.gsd file...")
+                print("--------------------------------------------------")
                 restart, last_n_steps = get_gsd_file(job)
                 print(f"Initializing from {restart}")
                 n_steps = last_n_steps + job.doc.steps
@@ -147,15 +181,18 @@ def sample(job):
                 final_shrink_kT = None
                 shrink_steps = 0
                 shrink_period = None
-            else:
+            else: # Not restarting job
                 restart = None
                 n_steps = job.sp.n_steps
-                init_shrink_kT = job.sp['init_shrink_kT']
-                final_shrink_kT = job.sp['final_shrink_kT']
-                shrink_steps = job.sp['shrink_steps']
-                shrink_period = job.sp['shrink_period']
+                init_shrink_kT = job.sp.init_shrink_kT
+                final_shrink_kT = job.sp.final_shrink_kT
+                shrink_steps = job.sp.shrink_steps
+                shrink_period = job.sp.shrink_period
 
             if job.sp.coarse_grain == True:
+                print("----------------------------------------")
+                print("Preparing a coarse-grained simulation...")
+                print("----------------------------------------")
                 system.coarse_grain_system(
                         ref_distance=job.sp.ref_distance,
                         ref_mass=job.sp.ref_mass,
@@ -177,24 +214,26 @@ def sample(job):
             job.doc['polymer_lengths'] = system_parms.polymer_lengths
             job.doc["chain_sequences"] = system_parms.molecule_sequences
 
-        elif job.sp["system_type"] == "interface":
+        elif job.sp.system_type == "interface":
+            print("-------------------------")
             print("Creating the interface...")
+            print("-------------------------")
             slab_files = []
             ref_distances = []
-            if job.doc['use_signac']is True:
+            if job.doc.use_signac:
                 signac_args = []
-                if isinstance(job.sp['signac_args'], list):
-                    slab_1_arg = job.sp['signac_args'][0]
+                if isinstance(job.sp.signac_args, list):
+                    slab_1_arg = job.sp.signac_args[0]
                     signac_args.append(slab_1_arg)
-                    if len(job.sp['signac_args']) == 2:
-                        slab_2_arg = job.sp['signac_args'][1]
+                    if len(job.sp.signac_args) == 2:
+                        slab_2_arg = job.sp.signac_args[1]
                         signac_args.append(slab_2_args)
-                elif not isinstance(job.sp['signac_args'], list):
-                    signac_args.append(job.sp['signac_args'])
+                elif not isinstance(job.sp.signac_args, list):
+                    signac_args.append(job.sp.signac_args)
 
                 project = signac.get_project(
-                        root=job.sp['signac_project'], search=True
-                    )
+                        root=job.sp.signac_project, search=True
+                )
                 for arg in signac_args:
                     if isinstance(arg, dict):
                         _job = list(project.find_jobs(filter=arg))[0]
@@ -204,15 +243,15 @@ def sample(job):
                         _job = project.open_job(id=arg)
                         slab_files.append(_job.fn('restart.gsd'))
                         ref_distances.append(_job.doc['ref_distance']/10)
-            elif job.doc['use_signac'] is False:
+            else:
                 slab_files.append(job.sp.slab_file)
-                ref_distances.append(job.sp['reference_distance'])
+                ref_distances.append(job.sp.reference_distance)
 
             system = system.Interface(
-					slabs = slab_files,
-                    ref_distance = ref_distances[0],
-                    gap = job.sp['interface_gap'],
-					weld_axis = job.sp["weld_axis"],
+					slabs=slab_files,
+                    ref_distance=ref_distances[0],
+                    gap=job.sp.interface_gap,
+					weld_axis=job.sp.weld_axis,
             )
 
             job.doc['slab_ref_distances'] = system.ref_distance
@@ -225,27 +264,32 @@ def sample(job):
             system.system.save('init.mol2', overwrite=True)
             cg_potentials_dir = None
 
+        print("-------------------")
         print("System generated...")
+        print("-------------------")
+        print("----------------------")
         print("Starting simulation...")
-
+        print("----------------------")
         simulation = simulate.Simulation(
                 system,
-                r_cut=job.sp["r_cut"],
-                tau_kt=job.sp['tau_kt'],
-		        tau_p=job.sp['tau_p'],
-                nlist=job.sp['neighbor_list'],
-                dt=job.sp['dt'],
-                seed=job.sp['sim_seed'],
+                r_cut=job.sp.r_cut,
+                tau_kt=job.sp.tau_kt,
+                tau_p=job.sp.tau_p,
+                nlist=job.sp.neighbor_list,
+                wall_axis=job.sp.walls,
+                dt=job.sp.dt,
+                seed=job.sp.sim_seed,
                 auto_scale=auto_scale,
                 ref_values=ref_values,
                 mode="gpu",
-                gsd_write=max([int(job.doc['steps']/100), 1]),
-                log_write=max([int(job.doc['steps']/10000), 1]),
+                gsd_write=max([int(job.doc.steps/100), 1]),
+                log_write=max([int(job.doc.steps/10000), 1]),
                 restart=restart,
 				cg_potentials_dir=cg_potentials_dir
         )
-
+        print("------------------------------")
         print("Simulation object generated...")
+        print("------------------------------")
         job.doc['ref_energy'] = simulation.ref_energy
         job.doc['ref_distance'] = simulation.ref_distance
         job.doc['ref_mass'] = simulation.ref_mass
@@ -259,26 +303,50 @@ def sample(job):
         job.doc['steps_per_frame'] = simulation.gsd_write
         job.doc['steps_per_log'] = simulation.log_write
 
-        if job.sp['procedure'] == "quench":
+        if sum([1 for i in [
+                    init_shrink_kT,
+                    final_shrink_kT,
+                    shrink_period,
+                    shrink_steps
+                ] if i not in [0, None]]) == 4:
+            print("----------------------------")
+            print("Running shrink simulation...")
+            print(f"Number of steps: {shrink_steps}")
+            print(f"Initial temperature: {init_shrink_kT}")
+            print(f"Final temperature: {final_shrink_kT}")
+            print("----------------------------")
+            simulation.shrink(
+                    kT_init=init_shrink_kT,
+                    kT_final=final_shrink_kT,
+                    period=shrink_period,
+                    n_steps=shrink_steps,
+                    tree_nlist=False
+            )
+            print("-----------------------------")
+            print("Shrink simulation finished...")
+            print("-----------------------------")
+
+        if job.sp.procedure == "quench":
             job.doc['T_SI'] = unit_conversions.kelvin_from_reduced(
-                job.sp['kT_quench'],
-                simulation.ref_energy
+                job.sp.kT_quench, simulation.ref_energy
             )
             job.doc['T_unit'] = 'K'
-            print("Beginning quench simulation...")
-            done = simulation.quench(
-                        kT = job.sp['kT_quench'],
-					    pressure = job.sp['pressure'],
-                        n_steps = job.sp['n_steps'],
-                        init_shrink_kT = init_shrink_kT,
-                        final_shrink_kT = final_shrink_kT,
-                        shrink_steps = shrink_steps,
-                        wall_axis = job.sp['walls'],
-                        shrink_period = shrink_period
+            print("----------------------------")
+            print("Running quench simulation...")
+            print("----------------------------")
+            simulation.quench(
+                n_steps=job.sp.n_steps,
+                kT=job.sp.kT_quench,
+                pressure=job.sp.pressure
             )
+            print("-----------------------------")
+            print("Quench simulation finished...")
+            print("-----------------------------")
 
-        elif job.sp['procedure'] == "anneal":
-            print("Beginning anneal simulation...")
+        elif job.sp.procedure == "anneal":
+            print("----------------------------")
+            print("Running anneal simulation...")
+            print("----------------------------")
             if restart is not None:
                 step_sequence = [
                         i + last_n_steps for i in job.sp.anneal_sequence
@@ -286,10 +354,11 @@ def sample(job):
             else:
                 step_sequence = job.sp.anneal_sequence
 
-            if not job.sp['schedule']:
-                kT_list = np.linspace(job.sp['kT_anneal'][0],
-                                      job.sp['kT_anneal'][1],
-                                      len(job.sp['anneal_sequence']),
+            if not job.sp.schedule:
+                kT_list = np.linspace(
+                        job.sp.kT_anneal[0],
+                        job.sp.kT_anneal[1],
+                        len(job.sp.anneal_sequence),
                 )
                 kT_SI = [
                         unit_conversions.kelvin_from_reduced(
@@ -299,20 +368,30 @@ def sample(job):
                 job.doc['T_SI'] = kT_SI
                 job.doc['T_unit'] = 'K'
 
-            done = simulation.anneal(
-                        kT_init = job.sp['kT_anneal'][0],
-                        kT_final = job.sp['kT_anneal'][1],
-					    pressure = job.sp['pressure'],
-                        step_sequence = step_sequence,
-                        schedule = job.sp['schedule'],
-                        init_shrink_kT = init_shrink_kT,
-                        final_shrink_kT = final_shrink_kT,
-                        shrink_steps = shrink_steps,
-                        wall_axis = job.sp['walls'],
-                        shrink_period = shrink_period
+            simulation.anneal(
+                kT_init=job.sp.kT_anneal[0],
+                kT_final=job.sp.kT_anneal[1],
+                pressure=job.sp.pressure,
+                step_sequence=step_sequence,
+                schedule=job.sp.schedule,
             )
-        job.doc["done"] = done
-        print("Simulation finished")
+            print("-----------------------------")
+            print("Anneal simulation finished...")
+            print("-----------------------------")
+
+        job.doc["final_timestep"] = simulation.sim.timestep
+        if simulation.sim.timestep >= job.doc.steps + shrink_steps:
+            job.doc["done"] = True
+            print("-----------------------------")
+            print("Simulation finished completed")
+            print("-----------------------------")
+        else:
+            job.doc["done"] = False
+            print("-------------------------------")
+            print("Simulation finished uncompleted")
+            print("Final timestep: {job.doc.final_timestep}")
+            print("-------------------------------")
+
 
 if __name__ == "__main__":
     MyProject().main()
