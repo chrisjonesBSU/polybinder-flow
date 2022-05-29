@@ -79,7 +79,20 @@ def get_gsd_file(job):
             print("-------------------------------")
             print("Restart job filter used:")
             print(job.sp.signac_args)
-            _job = list(project.find_jobs(filter=job.sp.signac_args))[0]
+            print("-------------------------------")
+            job_lookup = list(project.find_jobs(filter=job.sp.signac_args))
+            if len(job_lookup) > 1:
+                print([j.id for j in job_lookup])
+                raise ValueError(
+                        "The signac filter provied returned more than "
+                        "1 job."
+                )
+            if len(job_lookup) < 1:
+                raise ValueError(
+                        "The signac filter provided found zero jobs."
+                )
+            _job = job_lookup[0]
+            print("-------------------------------")
             print("Found restart job:")
             print(_job.id)
             print(_job.sp)
@@ -91,7 +104,7 @@ def get_gsd_file(job):
         restart_file = _job.fn('restart.gsd')
     elif job.sp.slab_file:
         restart_file = job.sp.restart_file
-    return restart_file, _job.doc.steps
+    return restart_file, _job.doc.final_timestep
 
 
 @directives(executable="python -u")
@@ -153,7 +166,7 @@ def sample(job):
                 final_shrink_kT = None
                 shrink_steps = 0
                 shrink_period = None
-            elif any([ # Restarting from another workspace
+            elif any([                  # Restarting from another workspace
                     all([job.sp.signac_project, job.sp.signac_args]),
                     job.sp.restart_file
                 ]
@@ -207,19 +220,19 @@ def sample(job):
             print("-------------------------")
             slab_files = []
             ref_distances = []
-            if job.doc['use_signac']is True:
+            if job.doc.use_signac is True:
                 signac_args = []
-                if isinstance(job.sp['signac_args'], list):
-                    slab_1_arg = job.sp['signac_args'][0]
+                if isinstance(job.sp.signac_args, list):
+                    slab_1_arg = job.sp.signac_args[0]
                     signac_args.append(slab_1_arg)
-                    if len(job.sp['signac_args']) == 2:
-                        slab_2_arg = job.sp['signac_args'][1]
+                    if len(job.sp.signac_args) == 2:
+                        slab_2_arg = job.sp.signac_args[1]
                         signac_args.append(slab_2_args)
-                elif not isinstance(job.sp['signac_args'], list):
-                    signac_args.append(job.sp['signac_args'])
+                elif not isinstance(job.sp.signac_args, list):
+                    signac_args.append(job.sp.signac_args)
 
                 project = signac.get_project(
-                        root=job.sp['signac_project'], search=True
+                        root=job.sp.signac_project, search=True
                     )
                 for arg in signac_args:
                     if isinstance(arg, dict):
@@ -230,15 +243,15 @@ def sample(job):
                         _job = project.open_job(id=arg)
                         slab_files.append(_job.fn('restart.gsd'))
                         ref_distances.append(_job.doc['ref_distance']/10)
-            elif job.doc['use_signac'] is False:
+            elif job.doc.use_signac is False:
                 slab_files.append(job.sp.slab_file)
-                ref_distances.append(job.sp['reference_distance'])
+                ref_distances.append(job.sp.reference_distance)
 
             system = system.Interface(
-					slabs = slab_files,
-                    ref_distance = ref_distances[0],
-                    gap = job.sp['interface_gap'],
-					weld_axis = job.sp["weld_axis"],
+					slabs=slab_files,
+                    ref_distance=ref_distances[0],
+                    gap=job.sp.interface_gap,
+					weld_axis=job.sp.weld_axis,
             )
 
             job.doc['slab_ref_distances'] = system.ref_distance
@@ -298,6 +311,9 @@ def sample(job):
                 ] if i not in [0, None]]) == 4:
             print("----------------------------")
             print("Running shrink simulation...")
+            print(f"Number of steps: {shrink_steps}")
+            print(f"Initial temperature: {init_shrink_kT}")
+            print(f"Final temperature: {final_shrink_kT}")
             print("----------------------------")
             simulation.shrink(
                     kT_init=init_shrink_kT,
@@ -338,11 +354,11 @@ def sample(job):
             else:
                 step_sequence = job.sp.anneal_sequence
 
-            if not job.sp['schedule']:
+            if not job.sp.schedule:
                 kT_list = np.linspace(
-                        job.sp['kT_anneal'][0],
-                        job.sp['kT_anneal'][1],
-                        len(job.sp['anneal_sequence']),
+                        job.sp.kT_anneal[0],
+                        job.sp.kT_anneal[1],
+                        len(job.sp.anneal_sequence),
                 )
                 kT_SI = [
                         unit_conversions.kelvin_from_reduced(
@@ -362,6 +378,8 @@ def sample(job):
             print("-----------------------------")
             print("Anneal simulation finished...")
             print("-----------------------------")
+
+        job.doc["final_timestep"] = simulation.sim.timestep
         if simulation.sim.timestep >= job.doc.steps + shrink_steps:
             job.doc["done"] = True
             print("-----------------------------")
@@ -371,6 +389,7 @@ def sample(job):
             job.doc["done"] = False
             print("-------------------------------")
             print("Simulation finished uncompleted")
+            print("Final timestep: {job.doc.final_timestep}")
             print("-------------------------------")
 
 if __name__ == "__main__":
