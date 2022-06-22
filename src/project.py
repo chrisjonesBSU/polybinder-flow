@@ -161,7 +161,6 @@ def sample(job):
                 print("Initializing simulation from a restart.gsd file...")
                 print("--------------------------------------------------")
                 restart = job.fn("restart.gsd")
-                n_steps = job.sp.n_steps
                 init_shrink_kT = None
                 final_shrink_kT = None
                 shrink_steps = 0
@@ -183,7 +182,6 @@ def sample(job):
                 shrink_period = None
             else: # Not restarting job
                 restart = None
-                n_steps = job.sp.n_steps
                 init_shrink_kT = job.sp.init_shrink_kT
                 final_shrink_kT = job.sp.final_shrink_kT
                 shrink_steps = job.sp.shrink_steps
