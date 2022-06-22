@@ -1,5 +1,4 @@
 {% extends "base_script.sh" %}
-export HOOMD_WALLTIME_STOP=$((`date +%s` + 12 * 3600 - 10 * 60))
 {% block header %}
 {% set gpus = operations|map(attribute='directives.ngpu')|sum %}
 #!/bin/bash
@@ -8,7 +7,7 @@ export HOOMD_WALLTIME_STOP=$((`date +%s` + 12 * 3600 - 10 * 60))
 #SBATCH --partition={{ partition }}
 {% endif %}
 {% if walltime %}
-#SBATCH -t {{ 12|format_timedelta }}
+#SBATCH -t {{ 96|format_timedelta }}
 {% endif %}
 {% if gpus %}
 #SBATCH --gres gpu:{{ gpus }}
