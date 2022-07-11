@@ -128,8 +128,8 @@ def sample(job):
             system_parms = system.System(
                     density=job.sp.density,
                     molecule=job.sp.molecule,
-                    n_compounds=job.sp.n_compounds,
-                    polymer_lengths=job.sp.polymer_lengths,
+                    n_compounds=list(job.sp.n_compounds),
+                    polymer_lengths=list(job.sp.polymer_lengths),
                     para_weight=job.sp.para_weight,
                     monomer_sequence=job.sp.monomer_sequence,
                     sample_pdi=job.doc.sample_pdi,
