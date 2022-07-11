@@ -114,6 +114,7 @@ def get_gsd_file(job):
 def sample(job):
     from polybinder import simulate, system
     from polybinder.utils import base_units, unit_conversions
+    import hoomd
     import numpy as np
 
     with job:
