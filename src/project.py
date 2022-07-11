@@ -67,6 +67,25 @@ def initialized(job):
         return job.isfile("atomistic_gsd.gsd")
 
 
+def copy_cg_files(job):
+    from distutils.dir_util import copy_tree
+    from polybinder.library.forcefield import cg_potentials
+    cg_files_path = os.path.join(
+            cg_potentials, job.sp.molecule.lower(), job.sp.cg_mapping
+    )
+    copy_tree(cg_files_path, job.ws())
+    angles_dir = os.listdir(os.path.join(job.ws, "pekk_cg_forcefield", "angles"))
+    for f in os.listdir(angles_dir):
+        if f == f"E-K-K-{job.sp.para_weight}.txt":
+            print(f"Found EKK angle file {f}")
+            os.rename(
+                    os.path.join(angles_dir, f),
+                    os.path.join(angles_dir, "E-K-K.txt")
+            )
+            print(f"Renamed {f} to E-K-K.txt")
+    assert "E-K-K.txt" in [f for f in os.listdir(angles_dir)]
+
+
 def get_gsd_file(job):
     if job.sp.signac_project and job.sp.signac_args:
         print("Restarting job from another signac workspace")
