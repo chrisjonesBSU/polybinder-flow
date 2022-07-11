@@ -110,6 +110,7 @@ def get_parameters():
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
     parameters['mass_dist'] = ['weibull']
+    parameters["charges"] = [None]
     parameters["forcefield"] = ["gaff"]
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]

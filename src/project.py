@@ -142,6 +142,7 @@ def sample(job):
                     system=system_parms,
                     system_type=job.sp.system_type,
                     forcefield=job.sp.forcefield,
+                    charges=job.sp.charges,
                     remove_hydrogens=job.sp.remove_hydrogens,
 					**job.sp.kwargs
             )
@@ -284,6 +285,10 @@ def sample(job):
                 log_write=max([int(job.doc.steps/10000), 1]),
                 restart=restart,
 				cg_potentials_dir=cg_potentials_dir
+        )
+        hoomd.write.GSD.write(simulation.sim.state, filename=os.path.join(
+                job.ws, "init.gsd"
+            )
         )
         print("------------------------------")
         print("Simulation object generated...")
