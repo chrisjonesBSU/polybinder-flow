@@ -114,8 +114,8 @@ def get_gsd_file(job):
 def sample(job):
     from polybinder import simulate, system
     from polybinder.utils import base_units, unit_conversions
-    import hoomd
     import numpy as np
+    import hoomd
 
     with job:
         print("-----------------------")
@@ -167,10 +167,11 @@ def sample(job):
                 final_shrink_kT = None
                 shrink_steps = 0
                 shrink_period = None
-            elif any([                  # Restarting from another workspace
-                    all([job.sp.signac_project, job.sp.signac_args]),
-                    job.sp.restart_file
-                ]
+            elif any(
+                    [
+                        all([job.sp.signac_project, job.sp.signac_args]),
+                        job.sp.restart_file
+                    ]
             ):
                 print("--------------------------------------------------")
                 print("Initializing simulation from a restart.gsd file...")
@@ -198,7 +199,6 @@ def sample(job):
                         ref_mass=job.sp.ref_mass,
                         bead_mapping=job.sp.bead_mapping
                 )
-
                 ref_values = {
                     "distance": job.sp.ref_distance,
                     "energy": job.sp.ref_energy,
@@ -287,13 +287,12 @@ def sample(job):
                 restart=restart,
 				cg_potentials_dir=cg_potentials_dir
         )
-        hoomd.write.GSD.write(simulation.sim.state, filename=os.path.join(
-                job.ws, "init.gsd"
-            )
-        )
         print("------------------------------")
         print("Simulation object generated...")
         print("------------------------------")
+        hoomd.write.GSD.write(
+                simulation.sim.state, filename=os.path.join(job.ws, "init.gsd")
+        )
         job.doc['ref_energy'] = simulation.ref_energy
         job.doc['ref_distance'] = simulation.ref_distance
         job.doc['ref_mass'] = simulation.ref_mass
@@ -393,7 +392,7 @@ def sample(job):
             job.doc["done"] = False
             print("-------------------------------")
             print("Simulation finished uncompleted")
-            print("Final timestep: {job.doc.final_timestep}")
+            print(f"Final timestep: {job.doc.final_timestep}")
             print("-------------------------------")
 
 
