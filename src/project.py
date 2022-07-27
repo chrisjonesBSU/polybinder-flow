@@ -149,7 +149,7 @@ def sample(job):
             )
 
             if any(list(job.sp.box_constraints.values())):
-                system.target_box = system.set_target_box(
+                system.set_target_box(
                         job.sp.box_constraints["x"],
                         job.sp.box_constraints["y"],
                         job.sp.box_constraints["z"]
