@@ -282,10 +282,12 @@ def sample(job):
                 auto_scale=auto_scale,
                 ref_values=ref_values,
                 mode="gpu",
-                gsd_write=max([int(job.doc.steps/100), 1]),
+                gsd_write=max([int(job.doc.steps/500), 1]),
                 log_write=max([int(job.doc.steps/10000), 1]),
                 restart=restart,
-				cg_potentials_dir=cg_potentials_dir
+				cg_potentials_dir=cg_potentials_dir,
+                ekk_weight=job.sp.ekk_weight,
+                kek_weight=job.sp.kek_weight
         )
         print("------------------------------")
         print("Simulation object generated...")
