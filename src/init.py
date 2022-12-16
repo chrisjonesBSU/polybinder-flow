@@ -111,7 +111,7 @@ def get_parameters():
     parameters["Mw"] = [None]
     parameters['mass_dist'] = ['weibull']
     parameters["charges"] = ["antechamber"]
-    parameters["forcefield"] = ["opls"]
+    parameters["forcefield"] = ["pps_opls"]
     parameters["remove_hydrogens"] = [True, False]
     parameters["system_seed"] = [24]
     parameters["box_constraints"] = [
@@ -123,7 +123,6 @@ def get_parameters():
 	]
 
     ### SIM FROM RESTART PARAMETERS ###
-
 	# Path to the signac project to use
     parameters["signac_project"] = [None ]
 	# A way for signac to find the specific state point to use
@@ -151,6 +150,7 @@ def get_parameters():
     parameters["tau_kt"] = [0.1]
     parameters["tau_p"] = [None]
     parameters["pressure"] = [None]
+    parameters["couple"] = ["none"]
     parameters["dt"] = [0.0003]
     parameters["r_cut"] = [2.5]
     parameters["e_factor"] = [0.5]
@@ -165,6 +165,8 @@ def get_parameters():
             "quench",
             #"anneal"
         ]
+    parameters["num_gsd_frames"] = [100]
+    parameters["num_log_lines"] = [10000]
 
     ### Quench related parameters ###
     parameters["kT_quench"] = [1.8]
