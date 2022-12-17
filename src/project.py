@@ -23,7 +23,7 @@ class Borah(DefaultSlurmEnvironment):
     def add_args(cls, parser):
         parser.add_argument(
             "--partition",
-            default="gpu",
+            default="shortgpu",
             help="Specify the partition to submit to."
         )
 
@@ -36,7 +36,7 @@ class R2(DefaultSlurmEnvironment):
     def add_args(cls, parser):
         parser.add_argument(
             "--partition",
-            default="gpuq",
+            default="shortgpuq",
             help="Specify the partition to submit to."
         )
 
