@@ -23,7 +23,7 @@ class Borah(DefaultSlurmEnvironment):
     def add_args(cls, parser):
         parser.add_argument(
             "--partition",
-            default="gpu",
+            default="shortgpu",
             help="Specify the partition to submit to."
         )
 
@@ -36,7 +36,7 @@ class R2(DefaultSlurmEnvironment):
     def add_args(cls, parser):
         parser.add_argument(
             "--partition",
-            default="gpuq",
+            default="shortgpuq",
             help="Specify the partition to submit to."
         )
 
@@ -282,8 +282,8 @@ def sample(job):
                 auto_scale=auto_scale,
                 ref_values=ref_values,
                 mode="gpu",
-                gsd_write=max([int(job.doc.steps/100), 1]),
-                log_write=max([int(job.doc.steps/10000), 1]),
+                gsd_write=max([int(job.doc.steps/job.sp.num_gsd_frames), 1]),
+                log_write=max([int(job.doc.steps/job.sp.num_log_lines), 1]),
                 restart=restart,
 				cg_potentials_dir=cg_potentials_dir
         )
