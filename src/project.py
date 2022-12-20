@@ -184,6 +184,7 @@ def sample(job):
             else:
                 ref_values = None
                 auto_scale = True
+                cg_potentials_dir = None
 
             # Call the correct system builder function
             if job.sp.system_type == "pack":
