@@ -102,8 +102,6 @@ def get_parameters():
             #"PPS"
     ]
     parameters["para_weight"] = [1.0]
-    parameters["ekk_weight"] = [1.0]
-    parameters["kek_weight"] = [1.0]
     parameters["monomer_sequence"] = [None]
     parameters["density"] = [1.27]
     parameters["n_compounds"] = [[50]]
@@ -125,7 +123,6 @@ def get_parameters():
 	]
 
     ### SIM FROM RESTART PARAMETERS ###
-
 	# Path to the signac project to use
     parameters["signac_project"] = [None]
 	# A way for signac to find the specific state point to use
@@ -136,28 +133,28 @@ def get_parameters():
 
     ### COARSE-GRAINING PARAMETERS ###
     # NOTE: If coarse-graining, double-check your r-cut value
-    # relative to your coarse-grained potentials
+    # relative to your coarse-grained table potential files
     # Also be sure to set the focefield parameter to None
     parameters["coarse_grain"] = [True]
     parameters["ref_distance"] = [3.3997] # Angstrom
     parameters["ref_mass"] = [15.99] # AMU
     parameters["ref_energy"] = [0.21] # kcal/mol
     # Location in polybinder.library.forcefields to look for CG specific table
-    # Leave as None if the table potentials are in polybinder.library.forcefields
-    parameters["cg_potentials_dir"] = ["msibi_4states"]
-    parameters["bead_mapping"] = ["ring_plus_linkage_UA"]
-
+    parameters["cg_potentials_dir"] = ["rmax_4_angles2"]
+    parameters["bead_mapping"] = ["ring_plus_linkage_AA"]
+    parameters["ekk_weight"] = [1.0]
+    parameters["kek_weight"] = [1.0]
+    parameters["dihedrals"] = [
+            {
+                "E-K-K-E": {"k": 20, "d": -1, "n": 1, "phi0": 0.0},
+                "K-E-K-K": {"k": 13, "d": -1, "n": 1, "phi0": 0.0},
+            }
+    ]
     ### SIMULATION PARAMETERS ###
     parameters["tau_kt"] = [0.1]
     parameters["tau_p"] = [None]
     parameters["pressure"] = [None]
-    parameters["dt"] = [
-            0.0003,
-            0.0001,
-            0.005,
-            0.001,
-            0.01
-    ]
+    parameters["dt"] = [0.0003,]
     parameters["r_cut"] = [5.0]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
