@@ -110,8 +110,8 @@ def get_parameters():
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
     parameters['mass_dist'] = ['weibull']
-    parameters["charges"] = [None]
-    parameters["forcefield"] = [None]
+    parameters["charges"] = ["antechamber"]
+    parameters["forcefield"] = ["pps_opls"]
     parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
     parameters["box_constraints"] = [
@@ -154,8 +154,9 @@ def get_parameters():
     parameters["tau_kt"] = [0.1]
     parameters["tau_p"] = [None]
     parameters["pressure"] = [None]
-    parameters["dt"] = [0.0003,]
-    parameters["r_cut"] = [5.0]
+    parameters["couple"] = ["none"]
+    parameters["dt"] = [0.0003]
+    parameters["r_cut"] = [2.5]
     parameters["e_factor"] = [0.5]
     parameters["sim_seed"] = [42]
     parameters["neighbor_list"] = ["Cell"]
@@ -168,6 +169,8 @@ def get_parameters():
             "quench",
             #"anneal"
         ]
+    parameters["num_gsd_frames"] = [100]
+    parameters["num_log_lines"] = [10000]
 
     ### Quench related parameters ###
     parameters["kT_quench"] = [6.5]
