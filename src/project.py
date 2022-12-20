@@ -153,7 +153,7 @@ def sample(job):
                     charges=job.sp.charges,
                     remove_hydrogens=job.sp.remove_hydrogens,
             )
-            
+
             job.doc["total_mass"] = system.mass
             job.doc["mass_units"] = "amu"
 
@@ -203,7 +203,7 @@ def sample(job):
 
             job.doc["target_box"] = system.target_box
             job.doc["target_volume"] = np.prod(system.target_box)
-            job.doc.["target_volume_units"] = "nm^3"
+            job.doc["target_volume_units"] = "nm^3"
 
             # Restarting job from within the same workspace
             if job.isfile("restart.gsd"):
