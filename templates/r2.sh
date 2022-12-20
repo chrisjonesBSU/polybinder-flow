@@ -7,7 +7,6 @@
 #SBATCH --partition={{ partition }}
 {% endif %}
 #SBATCH -t {{ 96|format_timedelta }}
-{% endif %}
 {% if gpus %}
 #SBATCH --gres gpu:{{ gpus }}
 {% endif %}

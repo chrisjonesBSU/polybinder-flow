@@ -98,33 +98,33 @@ def get_parameters():
     ]
     parameters["molecule"] = [
             #'PEEK',
-            #'PEKK',
-            "PPS"
+            'PEKK',
+            #"PPS"
     ]
     parameters["para_weight"] = [1.0]
     parameters["monomer_sequence"] = [None]
-    parameters["density"] = [1.32]
-    parameters["n_compounds"] = [[25]]
-    parameters["polymer_lengths"] = [[15]]
+    parameters["density"] = [1.27]
+    parameters["n_compounds"] = [[50]]
+    parameters["polymer_lengths"] = [[6]]
     parameters["pdi"] = [None]
     parameters["Mn"] = [None]
     parameters["Mw"] = [None]
     parameters['mass_dist'] = ['weibull']
     parameters["charges"] = ["antechamber"]
     parameters["forcefield"] = ["pps_opls"]
-    parameters["remove_hydrogens"] = [True, False]
+    parameters["remove_hydrogens"] = [True]
     parameters["system_seed"] = [24]
     parameters["box_constraints"] = [
             {"x": None, "y": None, "z": None}
 	]
     parameters["kwargs"] = [
-            {"expand_factor": 10},
+            {"expand_factor": 7},
            #{"n": 4, "a": 1.5, "b": 1.5}
 	]
 
     ### SIM FROM RESTART PARAMETERS ###
 	# Path to the signac project to use
-    parameters["signac_project"] = [None ]
+    parameters["signac_project"] = [None]
 	# A way for signac to find the specific state point to use
 	# Can be a job ID or a dictionary of a state point
     parameters["signac_args"] = [None]
@@ -133,19 +133,23 @@ def get_parameters():
 
     ### COARSE-GRAINING PARAMETERS ###
     # NOTE: If coarse-graining, double-check your r-cut value
-    # relative to your coarse-grained potentials
+    # relative to your coarse-grained table potential files
     # Also be sure to set the focefield parameter to None
-    parameters["coarse_grain"] = [False]
-    """
+    parameters["coarse_grain"] = [True]
     parameters["ref_distance"] = [3.3997] # Angstrom
     parameters["ref_mass"] = [15.99] # AMU
-    parameters["ref_energy"] = [0.21] # kJ/mol
+    parameters["ref_energy"] = [0.21] # kcal/mol
     # Location in polybinder.library.forcefields to look for CG specific table
-    # Leave as None if the table potentials are in polybinder.library.forcefields
-    parameters["cg_potentials_dir"] = [None]
-    parameters["bead_mapping"] = ["ring_plus_linkage_UA"]
-    """
-
+    parameters["cg_potentials_dir"] = ["rmax_4_angles2"]
+    parameters["bead_mapping"] = ["ring_plus_linkage_AA"]
+    parameters["ekk_weight"] = [1.0]
+    parameters["kek_weight"] = [1.0]
+    parameters["dihedrals"] = [
+            {
+                "E-K-K-E": {"k": 20, "d": -1, "n": 1, "phi0": 0.0},
+                "K-E-K-K": {"k": 13, "d": -1, "n": 1, "phi0": 0.0},
+            }
+    ]
     ### SIMULATION PARAMETERS ###
     parameters["tau_kt"] = [0.1]
     parameters["tau_p"] = [None]
@@ -157,8 +161,8 @@ def get_parameters():
     parameters["sim_seed"] = [42]
     parameters["neighbor_list"] = ["Cell"]
     parameters["walls"] = [None]
-    parameters["init_shrink_kT"] = [3.0]
-    parameters["final_shrink_kT"] = [1.8]
+    parameters["init_shrink_kT"] = [7.0]
+    parameters["final_shrink_kT"] = [6.5]
     parameters["shrink_steps"] = [1e6]
     parameters["shrink_period"] = [1]
     parameters["procedure"] = [
@@ -169,8 +173,8 @@ def get_parameters():
     parameters["num_log_lines"] = [10000]
 
     ### Quench related parameters ###
-    parameters["kT_quench"] = [1.8]
-    parameters["n_steps"] = [5e6]
+    parameters["kT_quench"] = [6.5]
+    parameters["n_steps"] = [2e7]
 
     ### Anneal related parameters ###
     # List of [initial kT, final kT] Reduced Temps

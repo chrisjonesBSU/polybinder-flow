@@ -285,7 +285,11 @@ def sample(job):
                 gsd_write=max([int(job.doc.steps/job.sp.num_gsd_frames), 1]),
                 log_write=max([int(job.doc.steps/job.sp.num_log_lines), 1]),
                 restart=restart,
-				cg_potentials_dir=cg_potentials_dir
+				cg_potentials_dir=cg_potentials_dir,
+                ekk_weight=job.sp.ekk_weight,
+                kek_weight=job.sp.kek_weight,
+                pair_scale=job.sp.pair_scale,
+                dihedral_kwargs=job.sp.dihedrals,
         )
         print("------------------------------")
         print("Simulation object generated...")
@@ -328,6 +332,15 @@ def sample(job):
             print("-----------------------------")
             print("Shrink simulation finished...")
             print("-----------------------------")
+
+            #print("-----------------------------")
+            #print("Starting temp ramp...")
+            #print("-----------------------------")
+            #simulation.temp_ramp(
+            #        n_steps=1e7,
+            #        kT_init=6.5,
+            #        kT_final=job.sp.kT_quench
+            #)
 
         if job.sp.procedure == "quench":
             job.doc['T_SI'] = unit_conversions.kelvin_from_reduced(
