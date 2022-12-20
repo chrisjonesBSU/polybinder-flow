@@ -154,7 +154,7 @@ def sample(job):
                     remove_hydrogens=job.sp.remove_hydrogens,
             )
 
-            job.doc["total_mass"] = system.mass
+            job.doc["total_mass"] = system.system_mass
             job.doc["mass_units"] = "amu"
 
             # Coarse-grain the system if needed
