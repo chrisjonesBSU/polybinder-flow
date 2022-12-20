@@ -309,7 +309,6 @@ def sample(job):
 				cg_potentials_dir=cg_potentials_dir,
                 ekk_weight=job.sp.ekk_weight,
                 kek_weight=job.sp.kek_weight,
-                pair_scale=job.sp.pair_scale,
                 dihedral_kwargs=job.sp.dihedrals,
         )
         print("------------------------------")
