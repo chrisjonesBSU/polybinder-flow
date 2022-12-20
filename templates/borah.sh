@@ -6,9 +6,7 @@
 {% if partition %}
 #SBATCH --partition={{ partition }}
 {% endif %}
-{% if walltime %}
-#SBATCH -t {{ 48|format_timedelta }}
-{% endif %}
+#SBATCH -t {{ 96|format_timedelta }}
 {% if gpus %}
 #SBATCH --gres gpu:{{ gpus }}
 {% endif %}
@@ -19,5 +17,4 @@
 {% block tasks %}
 #SBATCH --ntasks={{ np_global }}
 {% endblock %}
-export HOOMD_WALLTIME_STOP=$((`date +%s` + 48 * 3600 - 10 * 60))
 {% endblock %}
