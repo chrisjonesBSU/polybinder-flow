@@ -141,6 +141,7 @@ def get_parameters():
     parameters["ref_energy"] = [0.21] # kcal/mol
     # Location in polybinder.library.forcefields to look for CG specific table
     parameters["cg_potentials_dir"] = ["rmax_4_angles2"]
+    parameters["cg_bead"] = ["components"]
     parameters["bead_mapping"] = ["ring_plus_linkage_AA"]
     parameters["ekk_weight"] = [1.0]
     parameters["kek_weight"] = [1.0]
