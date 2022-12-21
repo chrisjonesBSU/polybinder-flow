@@ -131,6 +131,8 @@ def sample(job):
             print("----------------------")
             print("Found an existing Parmed pickle file...")
             print("----------------------")
+        else:
+            parmed_dir = "pmd_structures"
 
         # Set up system parameters
         if job.sp.system_type != "interface":
@@ -159,6 +161,7 @@ def sample(job):
                     forcefield=job.sp.forcefield,
                     charges=job.sp.charges,
                     remove_hydrogens=job.sp.remove_hydrogens,
+                    parmed_dir=parmed_dir
             )
 
             job.doc["total_mass"] = system.system_mass
