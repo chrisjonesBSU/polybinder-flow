@@ -113,7 +113,8 @@ def get_gsd_file(job):
 @MyProject.post(sampled)
 def sample(job):
     from polybinder import simulate, system
-    from polybinder.utils import base_units, unit_conversions
+    from polybinder.utils import unit_conversions
+    from polybinder.utils.base_units import base_units
     import numpy as np
     import hoomd
 
@@ -155,6 +156,7 @@ def sample(job):
             job.doc['num_compounds'] = system_parms.n_compounds
             job.doc['polymer_lengths'] = system_parms.polymer_lengths
             job.doc["chain_sequences"] = system_parms.molecule_sequences
+
             # Call the Initializer class
             system = system.Initializer(
                     system=system_parms,
@@ -164,8 +166,8 @@ def sample(job):
                     parmed_dir=parmed_dir
             )
 
-            job.doc["total_mass"] = system.system_mass
-            job.doc["mass_units"] = "amu"
+            job.doc["total_mass_amu"] = system.system_mass
+            job.doc["total_mass_g"] = system.system_mass * base_units()["amu_to_kg"]
 
             # Coarse-grain the system if needed
             if job.sp.coarse_grain:
@@ -207,6 +209,8 @@ def sample(job):
             elif job.sp.system_type == "crystal":
                 system.crystal(**job.sp.kwargs)
 
+            job.doc["n_particles"] = len(system.system.atoms)
+
             # Override the default target box
             if any(list(job.sp.box_constraints.values())):
                 system.set_target_box(
@@ -215,9 +219,11 @@ def sample(job):
                         job.sp.box_constraints["z"]
                 )
 
-            job.doc["target_box"] = system.target_box
-            job.doc["target_volume"] = np.prod(system.target_box)
-            job.doc["target_volume_units"] = "nm^3"
+            job.doc["target_box_nm"] = system.target_box
+            job.doc["target_volume_nm"] = np.prod(system.target_box)
+            job.doc["target_volume_cm"] = (
+                    job.doc.target_volume / base_units()["cm_to_nm"]**3
+            )
 
             # Restarting job from within the same workspace
             if job.isfile("restart.gsd"):
@@ -411,7 +417,9 @@ def sample(job):
             print("-----------------------------")
 
         job.doc["final_timestep"] = simulation.sim.timestep
+        job.doc["simulation_duration_ns"] = job.doc.final_timestep * 1e-6
         job.doc["done"] = True
+
         print("-----------------------------")
         print("Simulation finished completed")
         print("-----------------------------")
