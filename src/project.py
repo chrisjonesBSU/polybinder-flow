@@ -125,6 +125,13 @@ def sample(job):
         print("----------------------")
         print("Creating the system...")
         print("----------------------")
+
+        if job.isfile("pmd_structures/parmed.pickle"):
+            parmed_dir = os.path.join(job.ws, "pmd_structures")
+            print("----------------------")
+            print("Found an existing Parmed pickle file...")
+            print("----------------------")
+
         # Set up system parameters
         if job.sp.system_type != "interface":
             system_parms = system.System(
@@ -187,6 +194,9 @@ def sample(job):
                 cg_potentials_dir = None
 
             # Call the correct system builder function
+            print("----------------------------------------")
+            print("Building the system...")
+            print("----------------------------------------")
             if job.sp.system_type == "pack":
                 system.pack(**job.sp.kwargs)
             elif job.sp.system_type == "stack":
@@ -285,9 +295,9 @@ def sample(job):
             shrink_steps = 0
             shrink_period = None
 
-        print("-------------------")
+        print("----------------------")
         print("System generated...")
-        print("-------------------")
+        print("----------------------")
         print("----------------------")
         print("Starting simulation...")
         print("----------------------")
