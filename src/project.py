@@ -222,7 +222,7 @@ def sample(job):
             job.doc["target_box_nm"] = system.target_box
             job.doc["target_volume_nm"] = np.prod(system.target_box)
             job.doc["target_volume_cm"] = (
-                    job.doc.target_volume / base_units()["cm_to_nm"]**3
+                    job.doc.target_volume_nm / base_units()["cm_to_nm"]**3
             )
 
             # Restarting job from within the same workspace
