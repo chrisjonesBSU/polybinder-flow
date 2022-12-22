@@ -113,7 +113,8 @@ def get_gsd_file(job):
 @MyProject.post(sampled)
 def sample(job):
     from polybinder import simulate, system
-    from polybinder.utils import base_units, unit_conversions
+    from polybinder.utils import unit_conversions
+    from polybinder.utils.base_units import base_units
     import numpy as np
     import hoomd
 
@@ -125,6 +126,16 @@ def sample(job):
         print("----------------------")
         print("Creating the system...")
         print("----------------------")
+
+        if job.isfile("pmd_structures/parmed.pickle"):
+            parmed_dir = os.path.join(job.ws, "pmd_structures")
+            print("----------------------")
+            print("Found an existing Parmed pickle file...")
+            print("----------------------")
+        else:
+            parmed_dir = "pmd_structures"
+
+        # Set up system parameters
         if job.sp.system_type != "interface":
             system_parms = system.System(
                     density=job.sp.density,
@@ -139,26 +150,83 @@ def sample(job):
                     Mw=job.sp.Mw,
                     seed=job.sp.system_seed
             )
+
+            job.doc['num_para'] = system_parms.para
+            job.doc['num_meta'] = system_parms.meta
+            job.doc['num_compounds'] = system_parms.n_compounds
+            job.doc['polymer_lengths'] = system_parms.polymer_lengths
+            job.doc["chain_sequences"] = system_parms.molecule_sequences
+
+            # Call the Initializer class
             system = system.Initializer(
                     system=system_parms,
-                    system_type=job.sp.system_type,
                     forcefield=job.sp.forcefield,
                     charges=job.sp.charges,
                     remove_hydrogens=job.sp.remove_hydrogens,
-					**job.sp.kwargs
+                    parmed_dir=parmed_dir
             )
 
+            job.doc["total_mass_amu"] = system.system_mass
+            job.doc["total_mass_g"] = system.system_mass * base_units()["amu_to_kg"]
+
+            # Coarse-grain the system if needed
+            if job.sp.coarse_grain:
+                print("----------------------------------------")
+                print("Preparing a coarse-grained simulation...")
+                print("----------------------------------------")
+                if job.sp.cg_bead == "components":
+                    use_monomers=False
+                    use_components=True
+                elif job.sp.cg_bead == "monomers":
+                    use_monomers = True
+                    use_components = False
+                system.coarse_grain_system(
+                        use_monomers=use_monomers,
+                        use_components=use_components,
+                        bead_mapping=job.sp.bead_mapping
+                )
+                ref_values = {
+                        "distance": job.sp.ref_distance,
+                        "energy": job.sp.ref_energy,
+                        "mass": job.sp.ref_mass
+                }
+                auto_scale = False
+                cg_potentials_dir = job.sp.cg_potentials_dir
+            # Not using a coarse-grain system
+            else:
+                ref_values = None
+                auto_scale = True
+                cg_potentials_dir = None
+
+            # Call the correct system builder function
+            print("----------------------------------------")
+            print("Building the system...")
+            print("----------------------------------------")
+            if job.sp.system_type == "pack":
+                system.pack(**job.sp.kwargs)
+            elif job.sp.system_type == "stack":
+                system.stack(**job.sp.kwargs)
+            elif job.sp.system_type == "crystal":
+                system.crystal(**job.sp.kwargs)
+
+            job.doc["n_particles"] = len(system.system.atoms)
+
+            # Override the default target box
             if any(list(job.sp.box_constraints.values())):
                 system.set_target_box(
                         job.sp.box_constraints["x"],
                         job.sp.box_constraints["y"],
                         job.sp.box_constraints["z"]
                 )
-            job.doc["target_volume"] = system.target_box
-            ref_values = None
-            auto_scale = True
 
-            if job.isfile("restart.gsd"): # Restarting from same workspace
+            job.doc["target_box_nm"] = system.target_box
+            job.doc["target_volume_nm"] = np.prod(system.target_box)
+            job.doc["target_volume_cm"] = (
+                    job.doc.target_volume / base_units()["cm_to_nm"]**3
+            )
+
+            # Restarting job from within the same workspace
+            if job.isfile("restart.gsd"):
                 print("--------------------------------------------------")
                 print("Initializing simulation from a restart.gsd file...")
                 print("--------------------------------------------------")
@@ -178,41 +246,17 @@ def sample(job):
                 print("--------------------------------------------------")
                 restart, last_n_steps = get_gsd_file(job)
                 print(f"Initializing from {restart}")
-                n_steps = last_n_steps + job.doc.steps
                 init_shrink_kT = None
                 final_shrink_kT = None
                 shrink_steps = 0
                 shrink_period = None
-            else: # Not restarting job
+            # Not initializing from a restart.gsd file
+            else:
                 restart = None
                 init_shrink_kT = job.sp.init_shrink_kT
                 final_shrink_kT = job.sp.final_shrink_kT
                 shrink_steps = job.sp.shrink_steps
                 shrink_period = job.sp.shrink_period
-
-            if job.sp.coarse_grain == True:
-                print("----------------------------------------")
-                print("Preparing a coarse-grained simulation...")
-                print("----------------------------------------")
-                system.coarse_grain_system(
-                        ref_distance=job.sp.ref_distance,
-                        ref_mass=job.sp.ref_mass,
-                        bead_mapping=job.sp.bead_mapping
-                )
-                ref_values = {
-                    "distance": job.sp.ref_distance,
-                    "energy": job.sp.ref_energy,
-                    "mass": job.sp.ref_mass
-                }
-                auto_scale = False
-                cg_potentials_dir = job.sp.cg_potentials_dir
-                n_steps = job.sp.n_steps
-
-            job.doc['num_para'] = system_parms.para
-            job.doc['num_meta'] = system_parms.meta
-            job.doc['num_compounds'] = system_parms.n_compounds
-            job.doc['polymer_lengths'] = system_parms.polymer_lengths
-            job.doc["chain_sequences"] = system_parms.molecule_sequences
 
         elif job.sp.system_type == "interface":
             print("-------------------------")
@@ -260,13 +304,9 @@ def sample(job):
             shrink_steps = 0
             shrink_period = None
 
-        if job.sp.coarse_grain == False:
-            system.system.save('init.mol2', overwrite=True)
-            cg_potentials_dir = None
-
-        print("-------------------")
+        print("----------------------")
         print("System generated...")
-        print("-------------------")
+        print("----------------------")
         print("----------------------")
         print("Starting simulation...")
         print("----------------------")
@@ -288,7 +328,6 @@ def sample(job):
 				cg_potentials_dir=cg_potentials_dir,
                 ekk_weight=job.sp.ekk_weight,
                 kek_weight=job.sp.kek_weight,
-                pair_scale=job.sp.pair_scale,
                 dihedral_kwargs=job.sp.dihedrals,
         )
         print("------------------------------")
@@ -309,7 +348,7 @@ def sample(job):
         job.doc['time_unit'] = 'fs'
         job.doc['steps_per_frame'] = simulation.gsd_write
         job.doc['steps_per_log'] = simulation.log_write
-
+        # Check if a shrink simulation run is needed
         if sum([1 for i in [
                     init_shrink_kT,
                     final_shrink_kT,
@@ -318,9 +357,6 @@ def sample(job):
                 ] if i not in [0, None]]) == 4:
             print("----------------------------")
             print("Running shrink simulation...")
-            print(f"Number of steps: {shrink_steps}")
-            print(f"Initial temperature: {init_shrink_kT}")
-            print(f"Final temperature: {final_shrink_kT}")
             print("----------------------------")
             simulation.shrink(
                     kT_init=init_shrink_kT,
@@ -332,16 +368,7 @@ def sample(job):
             print("-----------------------------")
             print("Shrink simulation finished...")
             print("-----------------------------")
-
-            #print("-----------------------------")
-            #print("Starting temp ramp...")
-            #print("-----------------------------")
-            #simulation.temp_ramp(
-            #        n_steps=1e7,
-            #        kT_init=6.5,
-            #        kT_final=job.sp.kT_quench
-            #)
-
+        # Run a quench simulation (NVT or NPT)
         if job.sp.procedure == "quench":
             job.doc['T_SI'] = unit_conversions.kelvin_from_reduced(
                 job.sp.kT_quench, simulation.ref_energy
@@ -363,13 +390,7 @@ def sample(job):
             print("----------------------------")
             print("Running anneal simulation...")
             print("----------------------------")
-            if restart is not None:
-                step_sequence = [
-                        i + last_n_steps for i in job.sp.anneal_sequence
-                ]
-            else:
-                step_sequence = job.sp.anneal_sequence
-
+            step_sequence = job.sp.anneal_sequence
             if not job.sp.schedule:
                 kT_list = np.linspace(
                         job.sp.kT_anneal[0],
@@ -396,18 +417,12 @@ def sample(job):
             print("-----------------------------")
 
         job.doc["final_timestep"] = simulation.sim.timestep
-        if simulation.sim.timestep >= job.doc.steps + shrink_steps:
-            job.doc["done"] = True
-            print("-----------------------------")
-            print("Simulation finished completed")
-            print("-----------------------------")
-        else:
-            job.doc["done"] = False
-            print("-------------------------------")
-            print("Simulation finished uncompleted")
-            print(f"Final timestep: {job.doc.final_timestep}")
-            print("-------------------------------")
+        job.doc["simulation_duration_ns"] = job.doc.final_timestep * 1e-6
+        job.doc["done"] = True
 
+        print("-----------------------------")
+        print("Simulation finished completed")
+        print("-----------------------------")
 
 if __name__ == "__main__":
     MyProject().main()
